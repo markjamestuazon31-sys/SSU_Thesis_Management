@@ -1249,3 +1249,577 @@
     flex-direction: column;
   }
 }
+
+
+/* ======================================================================
+   v7.6 — PROFESSIONAL ACADEMIC RESULT CARDS
+   Mirrors the approved visual mockup while retaining v7.5 functionality.
+   ====================================================================== */
+
+.repo75-content {
+  padding-top: 34px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #ffffff 74%, #fbfcfd 100%);
+}
+
+.repo75-controlbar {
+  min-height: 60px;
+  margin-bottom: 22px;
+}
+
+.repo75-filter-toggle {
+  min-height: 48px;
+  padding: 0 17px;
+  border-radius: 10px;
+  font-size: 13px;
+  box-shadow: 0 3px 10px rgba(12, 49, 77, .025);
+}
+
+.repo75-sort-control {
+  min-height: 48px;
+  grid-template-columns: auto minmax(120px, 165px) 16px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.repo75-sort-control select {
+  font-size: 12px;
+}
+
+.repo75-showing {
+  font-size: 12px;
+}
+
+.repo75-view-control {
+  gap: 0;
+  border: 1px solid #d6e0e8;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.repo75-view-control button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 0;
+}
+
+.repo75-view-control button + button {
+  border-left: 1px solid #d6e0e8;
+}
+
+.repo75-workspace {
+  gap: 24px;
+}
+
+.repo75-workspace.filters-open {
+  grid-template-columns: 286px minmax(0, 1fr);
+}
+
+/* Result list spacing */
+.repo75-grid {
+  gap: 22px;
+}
+
+.repo75-grid.list {
+  gap: 24px;
+}
+
+/* Card */
+.repo75-card {
+  border: 1px solid #d2dee7;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 28px rgba(18, 54, 82, .035),
+    0 1px 2px rgba(18, 54, 82, .03);
+  overflow: hidden;
+  background: #fff;
+}
+
+.repo75-card:hover {
+  border-color: #adc2d2;
+  box-shadow:
+    0 16px 34px rgba(18, 54, 82, .07),
+    0 2px 5px rgba(18, 54, 82, .035);
+  transform: translateY(-1px);
+}
+
+/* New shared card content wrapper */
+.repo75-card-content {
+  min-width: 0;
+}
+
+.repo75-year-column {
+  min-width: 0;
+}
+
+.repo75-year {
+  min-width: 68px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #073d6c, #072f57);
+  box-shadow: 0 7px 16px rgba(5, 48, 87, .13);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: .01em;
+}
+
+.repo75-card-main {
+  min-width: 0;
+  padding: 0;
+}
+
+.repo75-card-heading {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 28px;
+}
+
+.repo75-card h3 {
+  margin: 2px 0 15px;
+}
+
+.repo75-card h3 a {
+  color: #092f58;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 25px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -.015em;
+  text-decoration: none;
+}
+
+.repo75-card h3 a:hover {
+  color: #0a4f83;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.repo75-date {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 3px;
+  color: #687f93;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.repo75-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 13px;
+  color: #bd7908;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.repo75-author .icon {
+  flex: 0 0 auto;
+}
+
+.repo75-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 13px;
+  color: #273f58;
+  font-size: 13px;
+}
+
+.repo75-meta span {
+  gap: 7px;
+}
+
+.repo75-meta .icon {
+  color: #163f66;
+}
+
+.repo75-meta i {
+  width: 1px;
+  height: 22px;
+  border-radius: 0;
+  background: #a9b7c2;
+}
+
+.repo75-abstract {
+  max-width: 980px;
+  margin: 24px 0 20px;
+  color: #142b43;
+  font-size: 14px;
+  line-height: 1.58;
+}
+
+.repo75-keywords {
+  min-height: 30px;
+  gap: 10px;
+}
+
+.repo75-chip {
+  min-height: 32px;
+  padding: 0 15px;
+  border: 1px solid #e2eaf0;
+  background: #edf4f9;
+  color: #16466c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.repo75-chip.muted {
+  color: #718394;
+  background: #f5f7f9;
+}
+
+/* Actions */
+.repo75-card-actions {
+  min-width: 0;
+}
+
+.repo75-open,
+.repo75-download {
+  min-height: 54px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.repo75-open {
+  border-color: #073c6c;
+  background: linear-gradient(135deg, #073f71, #062d53);
+  box-shadow: 0 8px 15px rgba(5, 49, 88, .09);
+}
+
+.repo75-download {
+  border-width: 1.5px;
+  border-color: #d69a28;
+  color: #b66f05;
+  background: #fff;
+}
+
+.repo75-download:not(.disabled):hover {
+  background: #fffaf0;
+}
+
+/* List view closely follows the approved mockup */
+.repo75-grid.list .repo75-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  align-items: stretch;
+}
+
+.repo75-grid.list .repo75-card-content {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px 30px 25px 28px;
+}
+
+.repo75-grid.list .repo75-year-column {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.repo75-grid.list .repo75-card-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: center;
+  gap: 13px;
+  margin: 0;
+  padding: 34px 36px;
+  border-top: 0;
+  border-left: 1px solid #dce5ec;
+  background: linear-gradient(180deg, #fff 0%, #fdfefe 100%);
+}
+
+.repo75-grid.list .repo75-card h3 a {
+  font-size: 25px;
+}
+
+.repo75-grid.list .repo75-abstract {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Grid view remains useful but adopts the same visual language */
+.repo75-grid:not(.list) .repo75-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.repo75-grid:not(.list) .repo75-card-content {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 16px;
+  padding: 22px;
+}
+
+.repo75-grid:not(.list) .repo75-year {
+  min-width: 60px;
+  min-height: 42px;
+  font-size: 12px;
+}
+
+.repo75-grid:not(.list) .repo75-card-heading {
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+
+.repo75-grid:not(.list) .repo75-date {
+  order: -1;
+  justify-self: start;
+  padding-top: 0;
+}
+
+.repo75-grid:not(.list) .repo75-card h3 {
+  margin-bottom: 12px;
+}
+
+.repo75-grid:not(.list) .repo75-card h3 a {
+  font-size: 20px;
+}
+
+.repo75-grid:not(.list) .repo75-abstract {
+  -webkit-line-clamp: 3;
+  margin-top: 18px;
+}
+
+.repo75-grid:not(.list) .repo75-card-actions {
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 15px 22px 20px;
+  border-top: 1px solid #e7edf2;
+}
+
+/* Pagination matching mockup */
+.repo75-pagination {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 62px;
+  margin-top: 30px;
+}
+
+.repo75-page-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.repo75-pagination .repo75-page-arrow,
+.repo75-pagination .repo75-page-number {
+  min-width: 48px;
+  height: 48px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #d6e0e8;
+  border-radius: 9px;
+  background: #fff;
+  color: #6e8294;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.repo75-pagination .repo75-page-number {
+  font-size: 14px;
+}
+
+.repo75-pagination .repo75-page-number.active {
+  border-color: #073c6c;
+  background: #073c6c;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(7, 60, 108, .11);
+}
+
+.repo75-pagination button:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+.repo75-page-gap {
+  min-width: 30px;
+  color: #788b9b;
+  font-size: 13px;
+}
+
+.repo75-go-page {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #16354f;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.repo75-go-page select {
+  min-width: 86px;
+  height: 48px;
+  padding: 0 38px 0 15px;
+  border: 1px solid #d6e0e8;
+  border-radius: 9px;
+  outline: 0;
+  background: #fff;
+  color: #153a59;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Wider result area with polished proportions */
+@media (min-width: 1500px) {
+  .repo75-shell {
+    width: min(1540px, calc(100% - 80px));
+  }
+}
+
+@media (max-width: 1280px) {
+  .repo75-grid.list .repo75-card {
+    grid-template-columns: minmax(0, 1fr) 285px;
+  }
+
+  .repo75-grid.list .repo75-card-content {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 18px;
+    padding: 22px;
+  }
+
+  .repo75-grid.list .repo75-card-actions {
+    padding: 28px 24px;
+  }
+
+  .repo75-card h3 a,
+  .repo75-grid.list .repo75-card h3 a {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 980px) {
+  .repo75-workspace.filters-open {
+    grid-template-columns: 250px minmax(0, 1fr);
+  }
+
+  .repo75-grid.list .repo75-card {
+    grid-template-columns: 1fr;
+  }
+
+  .repo75-grid.list .repo75-card-actions {
+    grid-template-columns: 1fr 1fr;
+    padding: 16px 22px 22px;
+    border-left: 0;
+    border-top: 1px solid #e1e8ed;
+  }
+}
+
+@media (max-width: 760px) {
+  .repo75-controlbar {
+    margin-bottom: 17px;
+  }
+
+  .repo75-filter-toggle,
+  .repo75-sort-control {
+    min-height: 46px;
+  }
+
+  .repo75-grid.list .repo75-card-content,
+  .repo75-grid:not(.list) .repo75-card-content {
+    grid-template-columns: 1fr;
+    gap: 13px;
+    padding: 20px;
+  }
+
+  .repo75-grid.list .repo75-year-column,
+  .repo75-grid:not(.list) .repo75-year-column {
+    justify-content: flex-start;
+  }
+
+  .repo75-card-heading {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .repo75-date {
+    order: -1;
+    justify-self: start;
+  }
+
+  .repo75-card h3,
+  .repo75-grid.list .repo75-card h3 {
+    margin-top: 2px;
+  }
+
+  .repo75-card h3 a,
+  .repo75-grid.list .repo75-card h3 a {
+    font-size: 21px;
+  }
+
+  .repo75-abstract {
+    margin: 17px 0 15px;
+    font-size: 13px;
+  }
+
+  .repo75-grid.list .repo75-card-actions,
+  .repo75-grid:not(.list) .repo75-card-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .repo75-pagination {
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .repo75-controlbar-right {
+    width: 100%;
+  }
+
+  .repo75-showing {
+    flex: 1;
+  }
+
+  .repo75-grid.list .repo75-card-actions,
+  .repo75-grid:not(.list) .repo75-card-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .repo75-card-main {
+    min-width: 0;
+  }
+
+  .repo75-author {
+    font-size: 13px;
+  }
+
+  .repo75-meta {
+    font-size: 12px;
+  }
+
+  .repo75-meta i {
+    display: none;
+  }
+
+  .repo75-pagination {
+    gap: 14px;
+  }
+
+  .repo75-go-page {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -6,7 +6,7 @@ import { reconstructFile } from '../../services/file.service.js';
 import { escapeHtml } from '../../utils/dom.js';
 import { formatDate } from '../../utils/date.js';
 import { downloadBlob } from '../../utils/file.js';
-import '../../styles/repository-v75.css';
+import '../../styles/repository-v76.css';
 
 const PAGE_SIZE = 8;
 
@@ -137,7 +137,7 @@ function researchCard(research) {
 
   const fileButton = research.currentFileId
     ? `<button class="repo75-download" type="button" data-file="${escapeHtml(research.currentFileId)}">
-        ${icon('download', 15)}
+        ${icon('download', 17)}
         <span>Download Manuscript</span>
       </button>`
     : `<button class="repo75-download disabled" type="button" disabled>
@@ -146,36 +146,48 @@ function researchCard(research) {
 
   return `
     <article class="repo75-card">
-      <div class="repo75-card-main">
-        <div class="repo75-card-top">
+      <div class="repo75-card-content">
+        <div class="repo75-year-column">
           <span class="repo75-year">${escapeHtml(year)}</span>
-          <span class="repo75-date">${icon('clock', 14)} ${formatDate(publishedAt)}</span>
         </div>
 
-        <h3>
-          <a href="#/repository/${research.id}">${escapeHtml(title)}</a>
-        </h3>
+        <div class="repo75-card-main">
+          <div class="repo75-card-heading">
+            <h3>
+              <a href="#/repository/${research.id}">${escapeHtml(title)}</a>
+            </h3>
 
-        <p class="repo75-author">${escapeHtml(authors)}</p>
+            <span class="repo75-date">
+              ${icon('clock', 15)}
+              ${formatDate(publishedAt)}
+            </span>
+          </div>
 
-        <div class="repo75-meta">
-          <span>${icon('file', 14)} ${escapeHtml(program)}</span>
-          <i aria-hidden="true"></i>
-          <span>${icon('user', 14)} Adviser: ${escapeHtml(adviser)}</span>
+          <p class="repo75-author">
+            ${icon('user', 15)}
+            ${escapeHtml(authors)}
+          </p>
+
+          <div class="repo75-meta">
+            <span>${icon('file', 15)} ${escapeHtml(program)}</span>
+            <i aria-hidden="true"></i>
+            <span>${icon('user', 15)} Adviser: ${escapeHtml(adviser)}</span>
+          </div>
+
+          <p class="repo75-abstract">
+            ${escapeHtml(abstract || 'No abstract has been provided for this published research record.')}
+          </p>
+
+          <div class="repo75-keywords">${keywordChips(research.keywords)}</div>
         </div>
-
-        <p class="repo75-abstract">
-          ${escapeHtml(abstract || 'No abstract has been provided for this published research record.')}
-        </p>
-
-        <div class="repo75-keywords">${keywordChips(research.keywords)}</div>
       </div>
 
       <div class="repo75-card-actions">
         <a class="repo75-open" href="#/repository/${research.id}">
-          ${icon('eye', 15)}
+          ${icon('eye', 17)}
           <span>View Full Record</span>
         </a>
+
         ${fileButton}
       </div>
     </article>`;
@@ -558,15 +570,18 @@ function renderPagination(totalPages) {
   const nav = document.getElementById('repo-pagination');
   if (!nav) return;
 
-  if (totalPages <= 1) {
-    nav.innerHTML = '';
-    return;
-  }
-
+  const safeTotalPages = Math.max(1, totalPages);
   const pages = [];
-  const visible = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
+  const visible = new Set([
+    1,
+    safeTotalPages,
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+  ]);
+
   const ordered = [...visible]
-    .filter((page) => page >= 1 && page <= totalPages)
+    .filter((page) => page >= 1 && page <= safeTotalPages)
     .sort((a, b) => a - b);
 
   let previous = 0;
@@ -577,7 +592,13 @@ function renderPagination(totalPages) {
     }
 
     pages.push(`
-      <button type="button" class="${page === currentPage ? 'active' : ''}" data-page="${page}">
+      <button
+        type="button"
+        class="repo75-page-number ${page === currentPage ? 'active' : ''}"
+        data-page="${page}"
+        aria-label="Go to page ${page}"
+        ${page === currentPage ? 'aria-current="page"' : ''}
+      >
         ${page}
       </button>`);
 
@@ -585,31 +606,56 @@ function renderPagination(totalPages) {
   });
 
   nav.innerHTML = `
-    <button
-      type="button"
-      data-page="${Math.max(1, currentPage - 1)}"
-      ${currentPage === 1 ? 'disabled' : ''}
-      aria-label="Previous page"
-    >‹</button>
+    <div class="repo75-page-buttons">
+      <button
+        class="repo75-page-arrow"
+        type="button"
+        data-page="${Math.max(1, currentPage - 1)}"
+        ${currentPage === 1 ? 'disabled' : ''}
+        aria-label="Previous page"
+      >‹</button>
 
-    ${pages.join('')}
+      ${pages.join('')}
 
-    <button
-      type="button"
-      data-page="${Math.min(totalPages, currentPage + 1)}"
-      ${currentPage === totalPages ? 'disabled' : ''}
-      aria-label="Next page"
-    >›</button>
+      <button
+        class="repo75-page-arrow"
+        type="button"
+        data-page="${Math.min(safeTotalPages, currentPage + 1)}"
+        ${currentPage === safeTotalPages ? 'disabled' : ''}
+        aria-label="Next page"
+      >›</button>
+    </div>
+
+    <label class="repo75-go-page">
+      <span>Go to page:</span>
+      <select id="repo-go-page" aria-label="Go to page">
+        ${Array.from({ length: safeTotalPages }, (_, index) => {
+          const page = index + 1;
+          return `<option value="${page}" ${page === currentPage ? 'selected' : ''}>${page}</option>`;
+        }).join('')}
+      </select>
+    </label>
   `;
 
   nav.querySelectorAll('button[data-page]').forEach((button) => {
     button.addEventListener('click', () => {
+      if (button.disabled) return;
       currentPage = Number(button.dataset.page);
       renderPage();
       document.getElementById('repo-results')?.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
       });
+    });
+  });
+
+  const goPage = document.getElementById('repo-go-page');
+  goPage?.addEventListener('change', () => {
+    currentPage = Number(goPage.value);
+    renderPage();
+    document.getElementById('repo-results')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
     });
   });
 }
