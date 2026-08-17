@@ -1,0 +1,1 @@
+export async function render(){return `<div class="config-page"><div class="config-card"><p class="eyebrow">404</p><h1>Page not found</h1><p>The page you requested does not exist or is not available to your account.</p><a class="btn btn-primary" href="#/dashboard">Return to dashboard</a></div></div>`;} export function mount(){}

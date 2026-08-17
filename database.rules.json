@@ -1,0 +1,117 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "system": {
+      "settings": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active'"
+      }
+    },
+    "users": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active'",
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || (root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active'))",
+        ".write": "auth != null && ((auth.uid == $uid && $uid == 'B12ivUlc7VQXFYe9au49L3nHLNw2' && !data.exists() && newData.child('role').val() == 'admin' && newData.child('status').val() == 'active' && newData.child('email').val() == 'admin@cas.com') || ($uid != 'B12ivUlc7VQXFYe9au49L3nHLNw2' && root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active' && (data.exists() || (!data.exists() && newData.child('role').val() == 'adviser' && newData.child('status').val() == 'active'))) || (auth.uid == $uid && !data.exists() && newData.child('role').val() == 'student' && newData.child('status').val() == 'active' && (!newData.child('adviserUid').exists() || newData.child('adviserUid').val() == '') && (!newData.child('adviserName').exists() || newData.child('adviserName').val() == '')) || (auth.uid == $uid && data.exists() && newData.child('role').val() == data.child('role').val() && newData.child('status').val() == data.child('status').val() && newData.child('email').val() == data.child('email').val() && newData.child('adviserUid').val() == data.child('adviserUid').val() && newData.child('adviserName').val() == data.child('adviserName').val()))",
+        ".validate": "newData.hasChildren(['email','displayName','role','status']) && (newData.child('role').val() == 'student' || newData.child('role').val() == 'adviser' || newData.child('role').val() == 'admin') && (newData.child('status').val() == 'active' || newData.child('status').val() == 'disabled')"
+      }
+    },
+    "profilePhotos": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || (root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active'))",
+        ".write": "auth != null && auth.uid == $uid && root.child('users').child(auth.uid).child('status').val() == 'active' && (root.child('users').child(auth.uid).child('role').val() == 'student' || root.child('users').child(auth.uid).child('role').val() == 'adviser' || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        ".validate": "!newData.exists() || (newData.hasChildren(['dataUrl','mimeType','size','width','height','updatedAt']) && newData.child('dataUrl').isString() && newData.child('dataUrl').val().length <= 500000 && newData.child('mimeType').val() == 'image/jpeg' && newData.child('size').isNumber() && newData.child('size').val() > 0 && newData.child('size').val() <= 286720 && newData.child('width').isNumber() && newData.child('width').val() >= 200 && newData.child('width').val() <= 320 && newData.child('height').isNumber() && newData.child('height').val() >= 200 && newData.child('height').val() <= 320)"
+      }
+    },
+    "adviserDirectory": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('status').val() == 'active'",
+      "$uid": {
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active') || (auth.uid == $uid && data.exists() && root.child('users').child(auth.uid).child('role').val() == 'adviser' && root.child('users').child(auth.uid).child('status').val() == 'active' && newData.child('status').val() == data.child('status').val() && newData.child('employeeId').val() == data.child('employeeId').val()))",
+        ".validate": "newData.hasChildren(['displayName','status']) && (newData.child('status').val() == 'active' || newData.child('status').val() == 'disabled')"
+      }
+    },
+    "adviserAssignments": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active'"
+    },
+    "theses": {
+      ".indexOn": [
+        "ownerUid",
+        "adviserUid",
+        "status"
+      ],
+      ".read": "auth != null && ((root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active') || (query.orderByChild == 'ownerUid' && query.equalTo == auth.uid) || (query.orderByChild == 'adviserUid' && query.equalTo == auth.uid))",
+      "$thesisId": {
+        ".read": "auth != null && ((data.child('ownerUid').val() == auth.uid) || (data.child('adviserUid').val() == auth.uid) || (root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active'))",
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active') || (!data.exists() && root.child('users').child(auth.uid).child('role').val() == 'student' && root.child('users').child(auth.uid).child('status').val() == 'active' && newData.child('ownerUid').val() == auth.uid && newData.child('adviserUid').isString() && newData.child('adviserUid').val() != '' && root.child('users').child(newData.child('adviserUid').val()).child('role').val() == 'adviser' && root.child('users').child(newData.child('adviserUid').val()).child('status').val() == 'active' && root.child('files').child(newData.child('currentFileId').val()).child('ownerUid').val() == auth.uid && root.child('files').child(newData.child('currentFileId').val()).child('thesisId').val() == $thesisId && (newData.child('status').val() == 'submitted' || newData.child('status').val() == 'under_review')) || (data.exists() && data.child('ownerUid').val() == auth.uid && data.child('status').val() == 'revision_required' && newData.child('ownerUid').val() == auth.uid && newData.child('adviserUid').val() == data.child('adviserUid').val() && newData.child('title').val() == data.child('title').val() && newData.child('abstract').val() == data.child('abstract').val() && newData.child('keywords').val() == data.child('keywords').val() && newData.child('authors').val() == data.child('authors').val() && newData.child('program').val() == data.child('program').val() && newData.child('department').val() == data.child('department').val() && newData.child('year').val() == data.child('year').val() && root.child('files').child(newData.child('currentFileId').val()).child('ownerUid').val() == auth.uid && root.child('files').child(newData.child('currentFileId').val()).child('thesisId').val() == $thesisId && (newData.child('status').val() == 'submitted' || newData.child('status').val() == 'under_review')) || (data.exists() && data.child('adviserUid').val() == auth.uid && root.child('users').child(auth.uid).child('role').val() == 'adviser' && root.child('users').child(auth.uid).child('status').val() == 'active' && newData.child('ownerUid').val() == data.child('ownerUid').val() && newData.child('adviserUid').val() == auth.uid && newData.child('title').val() == data.child('title').val() && newData.child('abstract').val() == data.child('abstract').val() && newData.child('keywords').val() == data.child('keywords').val() && newData.child('authors').val() == data.child('authors').val() && newData.child('program').val() == data.child('program').val() && newData.child('department').val() == data.child('department').val() && newData.child('year').val() == data.child('year').val() && newData.child('currentFileId').val() == data.child('currentFileId').val() && newData.child('version').val() == data.child('version').val() && (newData.child('status').val() == 'revision_required' || newData.child('status').val() == 'adviser_approved' || newData.child('status').val() == 'recommended' || newData.child('status').val() == 'rejected')))",
+        ".validate": "newData.hasChildren(['title','ownerUid','studentName','status','currentFileId','version'])"
+      }
+    },
+    "submissions": {
+      "$thesisId": {
+        ".read": "auth != null && (root.child('theses').child($thesisId).child('ownerUid').val() == auth.uid || root.child('theses').child($thesisId).child('adviserUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        "$submissionId": {
+          ".write": "auth != null && !data.exists() && root.child('theses').child($thesisId).child('ownerUid').val() == auth.uid",
+          ".validate": "newData.hasChildren(['fileId','version','submittedAt'])"
+        }
+      }
+    },
+    "reviews": {
+      "$thesisId": {
+        ".read": "auth != null && (root.child('theses').child($thesisId).child('ownerUid').val() == auth.uid || root.child('theses').child($thesisId).child('adviserUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        "$reviewId": {
+          ".write": "auth != null && !data.exists() && root.child('theses').child($thesisId).child('adviserUid').val() == auth.uid && root.child('users').child(auth.uid).child('role').val() == 'adviser' && newData.child('adviserUid').val() == auth.uid",
+          ".validate": "newData.hasChildren(['adviserUid','decision','comment','createdAt']) && (newData.child('decision').val() == 'revision_required' || newData.child('decision').val() == 'adviser_approved' || newData.child('decision').val() == 'recommended' || newData.child('decision').val() == 'rejected')"
+        }
+      }
+    },
+    "notifications": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        "$notificationId": {
+          ".write": "auth != null && ((auth.uid == $uid && data.exists() && newData.child('title').val() == data.child('title').val() && newData.child('message').val() == data.child('message').val() && newData.child('type').val() == data.child('type').val() && newData.child('route').val() == data.child('route').val() && newData.child('actorUid').val() == data.child('actorUid').val() && newData.child('createdAt').val() == data.child('createdAt').val()) || (!data.exists() && newData.child('actorUid').val() == auth.uid && root.child('users').child(auth.uid).child('status').val() == 'active'))",
+          ".validate": "newData.hasChildren(['title','message','type','route','read','createdAt'])"
+        }
+      }
+    },
+    "files": {
+      "$fileId": {
+        ".read": "data.child('published').val() == true || (auth != null && root.child('users').child(auth.uid).child('status').val() == 'active' && (data.child('ownerUid').val() == auth.uid || root.child('theses').child(data.child('thesisId').val()).child('adviserUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin'))",
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active') || (!data.exists() && newData.child('ownerUid').val() == auth.uid && root.child('users').child(auth.uid).child('role').val() == 'student' && root.child('users').child(auth.uid).child('status').val() == 'active') || (data.exists() && data.child('ownerUid').val() == auth.uid && data.child('published').val() != true && newData.child('ownerUid').val() == auth.uid && newData.child('thesisId').val() == data.child('thesisId').val() && newData.child('name').val() == data.child('name').val() && newData.child('type').val() == data.child('type').val() && newData.child('size').val() == data.child('size').val() && newData.child('chunkCount').val() == data.child('chunkCount').val() && newData.child('published').val() == data.child('published').val()))",
+        ".validate": "newData.hasChildren(['ownerUid','thesisId','name','size','chunkCount','status','published']) && newData.child('size').isNumber() && newData.child('size').val() > 0 && newData.child('size').val() <= 10485760"
+      }
+    },
+    "fileChunks": {
+      "$fileId": {
+        ".read": "root.child('files').child($fileId).child('published').val() == true || (auth != null && root.child('users').child(auth.uid).child('status').val() == 'active' && (root.child('files').child($fileId).child('ownerUid').val() == auth.uid || root.child('theses').child(root.child('files').child($fileId).child('thesisId').val()).child('adviserUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin'))",
+        "$chunkId": {
+          ".write": "auth != null && !data.exists() && root.child('files').child($fileId).child('ownerUid').val() == auth.uid && root.child('files').child($fileId).child('published').val() != true && root.child('users').child(auth.uid).child('role').val() == 'student' && root.child('users').child(auth.uid).child('status').val() == 'active'",
+          ".validate": "newData.isString() && newData.val().length <= 200000"
+        }
+      }
+    },
+    "publishedTheses": {
+      ".read": true,
+      "$thesisId": {
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin' && root.child('users').child(auth.uid).child('status').val() == 'active'"
+      }
+    },
+    "auditLogs": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin'",
+      "$logId": {
+        ".write": "auth != null && !data.exists() && newData.child('actorUid').val() == auth.uid",
+        ".validate": "newData.hasChildren(['actorUid','action','createdAt'])"
+      }
+    },
+    "isoEvaluations": {
+      ".indexOn": [
+        "uid"
+      ],
+      ".read": "auth != null && ((root.child('users').child(auth.uid).child('role').val() == 'admin') || (query.orderByChild == 'uid' && query.equalTo == auth.uid))",
+      "$evaluationId": {
+        ".write": "auth != null && !data.exists() && newData.child('uid').val() == auth.uid",
+        ".validate": "newData.hasChildren(['uid','functionality','reliability','usability','efficiency','maintainability','portability','average','createdAt']) && newData.child('functionality').val() >= 1 && newData.child('functionality').val() <= 5 && newData.child('reliability').val() >= 1 && newData.child('reliability').val() <= 5 && newData.child('usability').val() >= 1 && newData.child('usability').val() <= 5 && newData.child('efficiency').val() >= 1 && newData.child('efficiency').val() <= 5 && newData.child('maintainability').val() >= 1 && newData.child('maintainability').val() <= 5 && newData.child('portability').val() >= 1 && newData.child('portability').val() <= 5"
+      }
+    }
+  }
+}

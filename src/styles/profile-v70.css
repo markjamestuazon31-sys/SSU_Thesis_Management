@@ -1,0 +1,227 @@
+/* SSU Profile v7.0 - cache-busting hotfix */
+/* SSU My Profile - password error + professional spacing fix v6.9.1 */
+
+/* Main profile composition:
+   photo identity column on the left,
+   profile details + security stacked on the right. */
+.profile-page-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  grid-template-areas:
+    "photo details"
+    "photo security";
+  gap: 22px;
+  align-items: start;
+}
+
+.profile-photo-panel {
+  grid-area: photo;
+  position: sticky;
+  top: 96px;
+}
+
+.profile-details-panel {
+  grid-area: details;
+  min-width: 0;
+}
+
+.profile-security-panel {
+  grid-area: security;
+  min-width: 0;
+}
+
+/* Consistent card spacing */
+.profile-photo-panel,
+.profile-details-panel,
+.profile-security-panel {
+  border-radius: 16px;
+}
+
+.profile-photo-panel .panel-body {
+  padding: 30px 26px;
+}
+
+.profile-details-panel .panel-header,
+.profile-security-panel .panel-header {
+  padding: 18px 22px;
+}
+
+.profile-details-panel .panel-body,
+.profile-security-panel .panel-body {
+  padding: 22px;
+}
+
+.profile-details-panel .panel-header > div,
+.profile-security-panel .panel-header > div {
+  display: block;
+}
+
+.profile-details-panel .panel-header .eyebrow,
+.profile-security-panel .panel-header .eyebrow {
+  margin: 0 0 4px;
+}
+
+.profile-details-panel .panel-header h2,
+.profile-security-panel .panel-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.profile-security-help {
+  max-width: 760px;
+  margin: 0 0 18px;
+  color: var(--muted, #667085);
+  line-height: 1.65;
+}
+
+.profile-password-form {
+  width: 100%;
+  max-width: 920px;
+}
+
+.profile-password-form .form-grid.two {
+  gap: 16px;
+}
+
+.profile-password-form .form-actions,
+.profile-details-panel .form-actions {
+  margin-top: 4px;
+  justify-content: flex-start;
+}
+
+.profile-password-form .btn,
+.profile-details-panel .form-actions .btn {
+  min-width: 210px;
+}
+
+/* Give inputs and buttons a consistent professional rhythm */
+.profile-page-grid .field {
+  gap: 7px;
+}
+
+.profile-page-grid .field input,
+.profile-page-grid .field select {
+  min-height: 48px;
+}
+
+.profile-page-grid .form-grid.two {
+  column-gap: 16px;
+  row-gap: 14px;
+}
+
+.profile-photo-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.profile-photo-actions .btn {
+  width: 100%;
+}
+
+.profile-photo-help {
+  margin: 13px 0 0;
+  line-height: 1.55;
+}
+
+/* Make page spacing feel less cramped beside the sidebar/top bar. */
+.page-container {
+  padding-top: 32px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1050px) {
+  .profile-page-grid {
+    grid-template-columns: 290px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .profile-photo-panel .panel-body {
+    padding: 24px 20px;
+  }
+
+  .profile-details-panel .panel-body,
+  .profile-security-panel .panel-body {
+    padding: 19px;
+  }
+}
+
+@media (max-width: 820px) {
+  .profile-page-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "photo"
+      "details"
+      "security";
+    gap: 16px;
+  }
+
+  .profile-photo-panel {
+    position: static;
+  }
+
+  .profile-photo-panel .panel-body {
+    padding: 22px 18px;
+  }
+
+  .profile-password-form .form-grid.two,
+  .profile-details-panel .form-grid.two {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-password-form .btn,
+  .profile-details-panel .form-actions .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .page-container {
+    padding-top: 22px;
+  }
+}
+
+@media (max-width: 520px) {
+  .profile-details-panel .panel-header,
+  .profile-security-panel .panel-header {
+    padding: 16px;
+  }
+
+  .profile-details-panel .panel-body,
+  .profile-security-panel .panel-body {
+    padding: 16px;
+  }
+
+  .profile-page-grid {
+    gap: 12px;
+  }
+}
+
+
+/* Sidebar spacing refinement */
+.sidebar-nav {
+  padding-bottom: 18px;
+}
+
+.sidebar-section {
+  margin-bottom: 18px;
+}
+
+.sidebar-section-label {
+  margin: 0 0 9px;
+}
+
+.sidebar-nav a,
+.sidebar .nav-item {
+  min-height: 46px;
+  margin-bottom: 4px;
+}
+
+.sidebar-user {
+  margin-top: 12px;
+  padding-top: 16px;
+}

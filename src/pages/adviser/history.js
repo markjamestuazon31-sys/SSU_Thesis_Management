@@ -1,0 +1,6 @@
+import { getAdviserReviewHistory } from '../../services/review.service.js';
+import { getThesis } from '../../services/thesis.service.js';
+import { pageHeader, statusBadge, emptyState } from '../../components/ui.js';
+import { escapeHtml } from '../../utils/dom.js';
+import { formatDateTime } from '../../utils/date.js';
+export async function render({profile}){const rows=await getAdviserReviewHistory(profile.uid);for(const r of rows){const t=await getThesis(r.thesisId).catch(()=>null);r.title=t?.title||'Thesis record';r.studentName=t?.studentName||'—';}return `${pageHeader('Review History','A chronological record of review decisions submitted from your adviser account.')}<section class="panel"><div class="panel-body timeline">${rows.length?rows.map(r=>`<article class="timeline-item"><div class="timeline-dot"></div><div><div class="timeline-head"><strong>${escapeHtml(r.title)}</strong>${statusBadge(r.decision)}</div><p>${escapeHtml(r.comment)}</p><small>${escapeHtml(r.studentName)} • ${formatDateTime(r.createdAt)}</small><div><a class="text-link" href="#/adviser/review/${r.thesisId}">Open thesis →</a></div></div></article>`).join(''):emptyState('No review history','Review decisions you submit will appear here.')}</div></section>`;} export function mount(){}

@@ -1,0 +1,3 @@
+export function required(value,label) { const v=String(value ?? '').trim(); if (!v) throw new Error(`${label} is required.`); return v; }
+export function validEmail(value) { const email=required(value,'Email address').toLowerCase(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Enter a valid email address.'); return email; }
+export function validPassword(value) { const p=String(value||''); if (p.length<8) throw new Error('Password must contain at least 8 characters.'); if (!/[A-Z]/.test(p)||!/[a-z]/.test(p)||!/[0-9]/.test(p)) throw new Error('Password must include uppercase, lowercase, and a number.'); return p; }

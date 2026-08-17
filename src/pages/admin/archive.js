@@ -1,0 +1,7 @@
+import { getAllTheses, restoreThesis } from '../../services/thesis.service.js';
+import { pageHeader, emptyState, statusBadge } from '../../components/ui.js';
+import { escapeHtml } from '../../utils/dom.js';
+import { formatDate } from '../../utils/date.js';
+import { toast } from '../../components/toast.js';
+export async function render(){const rows=(await getAllTheses()).filter(t=>t.status==='archived');return `${pageHeader('Archive','Archived thesis records remain preserved and can be restored by an administrator.')}<section class="panel"><div class="panel-body no-pad">${rows.length?`<div class="table-wrap"><table class="data-table"><thead><tr><th>Title</th><th>Student</th><th>Status</th><th>Archived</th><th></th></tr></thead><tbody>${rows.map(t=>`<tr><td><div class="table-title">${escapeHtml(t.title)}</div><div class="table-subtitle">${escapeHtml(t.program||'')}</div></td><td>${escapeHtml(t.studentName||'—')}</td><td>${statusBadge(t.status)}</td><td>${formatDate(t.archivedAt)}</td><td><button class="btn btn-secondary btn-sm restore" data-id="${t.id}">Restore</button></td></tr>`).join('')}</tbody></table></div>`:emptyState('Archive is empty','Archived thesis records will appear here.')}</div></section>`;}
+export function mount({profile}){document.querySelectorAll('.restore').forEach(btn=>btn.addEventListener('click',async()=>{btn.disabled=true;try{await restoreThesis(profile.uid,btn.dataset.id);toast('Thesis restored.','success');location.hash='#/admin/archive?refresh='+Date.now();}catch(err){toast(err.message,'error');btn.disabled=false;}}));}

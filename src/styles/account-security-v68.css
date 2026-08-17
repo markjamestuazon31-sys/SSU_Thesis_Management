@@ -1,0 +1,6 @@
+.settings-grid-single{grid-template-columns:minmax(0,760px);justify-content:start}
+.account-security-panel{width:100%}
+.account-security-panel .panel-header>div{display:block}
+.account-security-panel .panel-header .eyebrow{margin:0 0 4px}
+.account-security-panel .panel-body{padding:24px}
+@media(max-width:900px){.settings-grid-single{grid-template-columns:1fr}}

@@ -1,0 +1,3 @@
+import { escapeHtml } from '../utils/dom.js';
+export function openModal({title,body,actions=''}){const root=document.getElementById('modal-root'); root.innerHTML=`<div class="modal-backdrop" data-close><section class="modal-card" role="dialog" aria-modal="true"><div class="modal-header"><h3>${escapeHtml(title)}</h3><button class="icon-button" type="button" data-close>×</button></div><div class="modal-body">${body}</div>${actions?`<div class="modal-actions">${actions}</div>`:''}</section></div>`; root.querySelectorAll('[data-close]').forEach(el=>el.addEventListener('click',e=>{if(e.currentTarget===e.target||e.currentTarget.tagName==='BUTTON')closeModal()}));}
+export function closeModal(){const root=document.getElementById('modal-root'); if(root)root.innerHTML='';}

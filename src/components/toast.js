@@ -1,0 +1,2 @@
+import { escapeHtml } from '../utils/dom.js';
+export function toast(message,type='info',duration=3500){const root=document.getElementById('toast-root'); if(!root)return; const el=document.createElement('div'); el.className=`toast toast-${type}`; el.innerHTML=`<span class="toast-dot"></span><div>${escapeHtml(message)}</div>`; root.appendChild(el); requestAnimationFrame(()=>el.classList.add('show')); setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),220)},duration);}

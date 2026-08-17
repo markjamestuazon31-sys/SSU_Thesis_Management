@@ -1,0 +1,24 @@
+{
+  "name": "ssu-thesis-management-professional",
+  "version": "6.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Professional responsive SSU CAS Thesis Record Management System with structured student research submission, adviser selection, multi-researcher support, redesigned public repository discovery, public manuscript downloads for published research, profile photos in Firebase Realtime Database, Firebase Authentication, and no Firebase Storage.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "check": "node scripts/check.mjs",
+    "check:indexes": "node scripts/check-indexes.mjs",
+    "deploy:rules": "npx firebase-tools deploy --only database --project inventory-61ec5"
+  },
+  "dependencies": {
+    "firebase": "^12.0.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}
