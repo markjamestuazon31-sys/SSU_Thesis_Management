@@ -1,4 +1,3 @@
-
 import { CAS_PROGRAMS } from '../../config/app.config.js';
 import { icon } from '../../components/icons.js';
 import { toast } from '../../components/toast.js';
@@ -7,39 +6,61 @@ import { reconstructFile } from '../../services/file.service.js';
 import { escapeHtml } from '../../utils/dom.js';
 import { formatDate } from '../../utils/date.js';
 import { downloadBlob } from '../../utils/file.js';
-import '../../styles/repository-v66.css';
+import '../../styles/repository-v75.css';
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 8;
 
 let allRows = [];
 let filteredRows = [];
 let currentPage = 1;
-let activeView = 'grid';
+let activeView = 'list';
+let filtersOpen = false;
+let defaultMinYear = new Date().getFullYear();
+let defaultMaxYear = new Date().getFullYear();
+
+function filterIcon(size = 18) {
+  return `
+    <svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 5h16l-6.2 7.1v5.4l-3.6 1.8v-7.2L4 5z"/>
+    </svg>`;
+}
+
+function chevronIcon(size = 16) {
+  return `
+    <svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="m6 9 6 6 6-6"/>
+    </svg>`;
+}
 
 function publicHeader(currentUser) {
   return `
-    <header class="repo66-header">
-      <div class="repo66-shell repo66-header-inner">
-        <a class="repo66-brand" href="#/repository" aria-label="SSU Institutional Repository">
-          <span class="repo66-logo">
+    <header class="repo75-header">
+      <div class="repo75-shell repo75-header-inner">
+        <a class="repo75-brand" href="#/repository" aria-label="SSU Institutional Repository">
+          <span class="repo75-logo">
             <img src="/assets/ssu-logo.jpg" alt="Samar State University seal">
           </span>
-          <span class="repo66-brand-copy">
+
+          <span class="repo75-brand-copy">
             <strong>Samar State University</strong>
             <span>College of Arts and Sciences</span>
             <small>Institutional Repository</small>
           </span>
         </a>
 
-        <button class="repo66-menu" id="repo66-menu" type="button" aria-label="Open navigation">
+        <button class="repo75-menu" id="repo75-menu" type="button" aria-label="Open navigation">
           ${icon('menu', 20)}
         </button>
 
-        <nav class="repo66-nav" id="repo66-nav" aria-label="Repository navigation">
+        <nav class="repo75-nav" id="repo75-nav" aria-label="Repository navigation">
           <a class="active" href="#/repository">Research</a>
           <a href="#/about">About Repository</a>
           <a href="https://ssu.edu.ph/category/research-extension/" target="_blank" rel="noopener">Research &amp; Extension</a>
-          <a class="repo66-login" href="${currentUser ? '#/dashboard' : '#/login'}">
+          <a class="repo75-login" href="${currentUser ? '#/dashboard' : '#/login'}">
             ${currentUser ? 'Open Dashboard' : 'Portal Sign In'}
           </a>
         </nav>
@@ -49,10 +70,10 @@ function publicHeader(currentUser) {
 
 function publicFooter(currentUser) {
   return `
-    <footer class="repo66-footer">
-      <div class="repo66-shell repo66-footer-grid">
-        <div class="repo66-footer-brand">
-          <span class="repo66-footer-logo">
+    <footer class="repo75-footer">
+      <div class="repo75-shell repo75-footer-grid">
+        <div class="repo75-footer-brand">
+          <span class="repo75-footer-logo">
             <img src="/assets/ssu-logo.jpg" alt="Samar State University seal">
           </span>
           <div>
@@ -62,7 +83,7 @@ function publicFooter(currentUser) {
           </div>
         </div>
 
-        <div class="repo66-footer-message">
+        <div class="repo75-footer-message">
           <p>Empowering research. Advancing knowledge.<br>Preserving scholarship for a better future.</p>
         </div>
 
@@ -80,8 +101,8 @@ function publicFooter(currentUser) {
         </div>
       </div>
 
-      <div class="repo66-footer-bottom">
-        <div class="repo66-shell">
+      <div class="repo75-footer-bottom">
+        <div class="repo75-shell">
           <span>© 2026 Samar State University. All rights reserved.</span>
           <span>College of Arts and Sciences · Samar State University</span>
         </div>
@@ -96,10 +117,12 @@ function keywordChips(value) {
     .filter(Boolean)
     .slice(0, 4);
 
-  if (!keywords.length) return '<span class="repo66-chip muted">No keywords</span>';
+  if (!keywords.length) {
+    return '<span class="repo75-chip muted">No keywords</span>';
+  }
 
   return keywords
-    .map((keyword) => `<span class="repo66-chip">${escapeHtml(keyword)}</span>`)
+    .map((keyword) => `<span class="repo75-chip">${escapeHtml(keyword)}</span>`)
     .join('');
 }
 
@@ -107,41 +130,51 @@ function researchCard(research) {
   const title = research.title || 'Untitled Research';
   const authors = research.authors || research.studentName || 'Author not specified';
   const program = research.program || 'Program not specified';
+  const adviser = research.adviserName || '—';
   const year = String(research.year || '—');
-  const abstract = String(research.abstract || '');
-  const abstractPreview = abstract.length > 250 ? `${abstract.slice(0, 250)}…` : abstract;
-  const publishedAt = research.publishedAt || 0;
+  const abstract = String(research.abstract || '').trim();
+  const publishedAt = Number(research.publishedAt || 0);
 
   const fileButton = research.currentFileId
-    ? `<button class="repo66-download" type="button" data-file="${escapeHtml(research.currentFileId)}">
-        ${icon('download', 15)} Download Manuscript
+    ? `<button class="repo75-download" type="button" data-file="${escapeHtml(research.currentFileId)}">
+        ${icon('download', 15)}
+        <span>Download Manuscript</span>
       </button>`
-    : `<button class="repo66-download disabled" type="button" disabled>Manuscript Unavailable</button>`;
+    : `<button class="repo75-download disabled" type="button" disabled>
+        <span>Manuscript Unavailable</span>
+      </button>`;
 
   return `
-    <article class="repo66-card"
-      data-search="${escapeHtml(`${title} ${authors} ${program} ${research.keywords || ''} ${research.adviserName || ''} ${year}`.toLowerCase())}"
-      data-program="${escapeHtml(program.toLowerCase())}"
-      data-year="${escapeHtml(year)}"
-      data-title="${escapeHtml(title.toLowerCase())}"
-      data-published="${Number(publishedAt || 0)}">
+    <article class="repo75-card">
+      <div class="repo75-card-main">
+        <div class="repo75-card-top">
+          <span class="repo75-year">${escapeHtml(year)}</span>
+          <span class="repo75-date">${icon('clock', 14)} ${formatDate(publishedAt)}</span>
+        </div>
 
-      <div class="repo66-card-top">
-        <span class="repo66-card-year">${escapeHtml(year)}</span>
-        <span class="repo66-published">${icon('clock', 14)} ${formatDate(publishedAt)}</span>
+        <h3>
+          <a href="#/repository/${research.id}">${escapeHtml(title)}</a>
+        </h3>
+
+        <p class="repo75-author">${escapeHtml(authors)}</p>
+
+        <div class="repo75-meta">
+          <span>${icon('file', 14)} ${escapeHtml(program)}</span>
+          <i aria-hidden="true"></i>
+          <span>${icon('user', 14)} Adviser: ${escapeHtml(adviser)}</span>
+        </div>
+
+        <p class="repo75-abstract">
+          ${escapeHtml(abstract || 'No abstract has been provided for this published research record.')}
+        </p>
+
+        <div class="repo75-keywords">${keywordChips(research.keywords)}</div>
       </div>
 
-      <h3><a href="#/repository/${research.id}">${escapeHtml(title)}</a></h3>
-      <p class="repo66-author">${escapeHtml(authors)}</p>
-      <p class="repo66-program">${escapeHtml(program)}</p>
-      <p class="repo66-adviser">Adviser: ${escapeHtml(research.adviserName || '—')}</p>
-      <p class="repo66-abstract">${escapeHtml(abstractPreview || 'No abstract has been provided for this published record.')}</p>
-
-      <div class="repo66-keywords">${keywordChips(research.keywords)}</div>
-
-      <div class="repo66-card-actions">
-        <a class="repo66-open" href="#/repository/${research.id}">
-          ${icon('eye', 15)} View Full Record
+      <div class="repo75-card-actions">
+        <a class="repo75-open" href="#/repository/${research.id}">
+          ${icon('eye', 15)}
+          <span>View Full Record</span>
         </a>
         ${fileButton}
       </div>
@@ -149,13 +182,34 @@ function researchCard(research) {
 }
 
 function programCounts(rows) {
-  const map = new Map(CAS_PROGRAMS.map((p) => [p, 0]));
+  const map = new Map(CAS_PROGRAMS.map((program) => [program, 0]));
   rows.forEach((row) => {
     const program = row.program || '';
     if (!map.has(program)) map.set(program, 0);
     map.set(program, (map.get(program) || 0) + 1);
   });
   return map;
+}
+
+function adviserOptions(rows) {
+  return [...new Set(
+    rows
+      .map((row) => String(row.adviserName || '').trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+}
+
+function getInitialYears(rows) {
+  const years = rows
+    .map((row) => Number(row.year))
+    .filter((year) => Number.isFinite(year) && year > 1900)
+    .sort((a, b) => a - b);
+
+  const current = new Date().getFullYear();
+  return {
+    min: years.length ? years[0] : current,
+    max: years.length ? years[years.length - 1] : current,
+  };
 }
 
 export async function render({ currentUser } = {}) {
@@ -167,134 +221,204 @@ export async function render({ currentUser } = {}) {
   allRows = rows;
   filteredRows = rows;
   currentPage = 1;
+  activeView = 'list';
+  filtersOpen = false;
 
   const counts = programCounts(rows);
-  const years = rows
-    .map((r) => Number(r.year))
-    .filter((y) => Number.isFinite(y) && y > 1900)
-    .sort((a, b) => a - b);
-
-  const minYear = years.length ? years[0] : new Date().getFullYear();
-  const maxYear = years.length ? years[years.length - 1] : new Date().getFullYear();
+  const advisers = adviserOptions(rows);
+  const years = getInitialYears(rows);
+  defaultMinYear = years.min;
+  defaultMaxYear = years.max;
 
   return `
-    <div class="repo66-page">
+    <div class="repo75-page">
       ${publicHeader(currentUser)}
 
       <main>
-        <section class="repo66-hero">
-          <div class="repo66-shell repo66-hero-inner">
-            <div class="repo66-hero-copy">
+        <section class="repo75-hero">
+          <div class="repo75-shell repo75-hero-inner">
+            <div class="repo75-hero-copy">
               <h1>Explore published<br>research from<br><em>Samar State University.</em></h1>
-              <p>Discover, access, and share scholarly works, theses, and academic research produced by the College of Arts and Sciences.</p>
 
-              <label class="repo66-search" role="search">
-                <input id="repo-search" type="search" placeholder="Search for theses, authors, keywords, or topics..." autocomplete="off">
-                <button id="repo-search-button" type="button">${icon('search', 17)} Search</button>
+              <p>
+                Discover, access, and share scholarly works, theses, and academic research
+                produced by the College of Arts and Sciences.
+              </p>
+
+              <label class="repo75-search" role="search">
+                <input
+                  id="repo-search"
+                  type="search"
+                  placeholder="Search for theses, authors, keywords, or topics..."
+                  autocomplete="off"
+                >
+                <button id="repo-search-button" type="button">
+                  ${icon('search', 17)} Search
+                </button>
               </label>
 
-              <div class="repo66-stats">
+              <div class="repo75-stats">
                 <article>
-                  <span>${icon('file', 26)}</span>
+                  <span>${icon('file', 24)}</span>
                   <div><strong>${rows.length}</strong><small>Published Records</small></div>
                 </article>
+
                 <article>
-                  <span>${icon('users', 26)}</span>
+                  <span>${icon('users', 24)}</span>
                   <div><strong>${CAS_PROGRAMS.length}</strong><small>CAS Programs</small></div>
                 </article>
+
                 <article>
-                  <span>${icon('clock', 26)}</span>
-                  <div><strong>${maxYear}</strong><small>Latest Publication Year</small></div>
+                  <span>${icon('clock', 24)}</span>
+                  <div><strong>${years.max}</strong><small>Latest Publication Year</small></div>
                 </article>
               </div>
             </div>
           </div>
         </section>
 
-        <section class="repo66-content">
-          <div class="repo66-shell repo66-layout">
-            <aside class="repo66-filters">
-              <div class="repo66-filter-heading">
-                <h2>Filters</h2>
-                <button id="repo-clear" type="button">Clear all</button>
-              </div>
-
-              <section class="repo66-filter-block">
-                <button class="repo66-filter-block-title" type="button" data-collapse="programs">
-                  <span>Program</span>
-                  <span>⌃</span>
+        <section class="repo75-content">
+          <div class="repo75-shell">
+            <div class="repo75-controlbar">
+              <div class="repo75-controlbar-left">
+                <button
+                  class="repo75-filter-toggle"
+                  id="repo-filter-toggle"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="repo-filter-panel"
+                >
+                  ${filterIcon(17)}
+                  <span>Filters</span>
+                  <span class="repo75-filter-count" id="repo-filter-count" hidden>0</span>
+                  ${chevronIcon(15)}
                 </button>
-                <div class="repo66-filter-block-body" id="filter-programs">
-                  <label class="repo66-check-row">
-                    <input type="checkbox" id="program-all" checked>
-                    <span>All CAS Programs</span>
-                    <strong>${rows.length}</strong>
-                  </label>
 
-                  ${CAS_PROGRAMS.map((program) => `
-                    <label class="repo66-check-row">
-                      <input type="checkbox" class="program-check" value="${escapeHtml(program.toLowerCase())}">
-                      <span>${escapeHtml(program)}</span>
-                      <strong>${counts.get(program) || 0}</strong>
-                    </label>
-                  `).join('')}
-                </div>
-              </section>
-
-              <section class="repo66-filter-block">
-                <button class="repo66-filter-block-title" type="button" data-collapse="years">
-                  <span>Research Year</span>
-                  <span>⌃</span>
-                </button>
-                <div class="repo66-filter-block-body" id="filter-years">
-                  <div class="repo66-range-wrap">
-                    <div class="repo66-range-track"></div>
-                    <input id="year-min" class="repo66-range repo66-range-min" type="range" min="${minYear}" max="${maxYear}" value="${minYear}">
-                    <input id="year-max" class="repo66-range repo66-range-max" type="range" min="${minYear}" max="${maxYear}" value="${maxYear}">
-                  </div>
-                  <div class="repo66-range-values">
-                    <span id="year-min-label">${minYear}</span>
-                    <span id="year-max-label">${maxYear}</span>
-                  </div>
-                </div>
-              </section>
-
-              <section class="repo66-filter-block">
-                <button class="repo66-filter-block-title" type="button" data-collapse="sort">
-                  <span>Sort By</span>
-                  <span>⌃</span>
-                </button>
-                <div class="repo66-filter-block-body" id="filter-sort">
-                  <select id="repo-sort">
+                <label class="repo75-sort-control">
+                  <span>Sort by</span>
+                  <select id="repo-sort" aria-label="Sort research records">
                     <option value="newest">Most Recent</option>
                     <option value="oldest">Oldest First</option>
                     <option value="title">Title A–Z</option>
                   </select>
-                </div>
-              </section>
-            </aside>
-
-            <div class="repo66-results">
-              <div class="repo66-results-toolbar">
-                <div>
-                  <span id="repo-showing">Showing 0 results</span>
-                </div>
-                <div class="repo66-view-control">
-                  <span>View as:</span>
-                  <button id="repo-grid-view" class="active" type="button" aria-label="Grid view">${icon('dashboard', 18)}</button>
-                  <button id="repo-list-view" type="button" aria-label="List view">${icon('menu', 18)}</button>
-                </div>
+                  ${chevronIcon(14)}
+                </label>
               </div>
 
-              <div class="repo66-grid" id="repo-results"></div>
+              <div class="repo75-controlbar-right">
+                <span class="repo75-showing" id="repo-showing">Showing 0 results</span>
 
-              <div class="repo66-empty" id="repo-empty" hidden>
-                ${icon('search', 32)}
-                <h3>No matching research found</h3>
-                <p>Try changing your search or filters.</p>
+                <div class="repo75-view-control" aria-label="Research view">
+                  <button id="repo-grid-view" type="button" aria-label="Grid view" title="Grid view">
+                    ${icon('dashboard', 18)}
+                  </button>
+                  <button id="repo-list-view" class="active" type="button" aria-label="List view" title="List view">
+                    ${icon('menu', 18)}
+                  </button>
+                </div>
               </div>
+            </div>
 
-              <nav class="repo66-pagination" id="repo-pagination" aria-label="Research pagination"></nav>
+            <div class="repo75-workspace" id="repo-workspace">
+              <aside class="repo75-filter-panel" id="repo-filter-panel" hidden>
+                <div class="repo75-filter-panel-head">
+                  <div>
+                    <span class="repo75-filter-eyebrow">Refine Results</span>
+                    <h2>Quick Filters</h2>
+                  </div>
+                  <button class="repo75-filter-close" id="repo-filter-close" type="button" aria-label="Close filters">×</button>
+                </div>
+
+                <div class="repo75-filter-form">
+                  <section class="repo75-filter-group">
+                    <label for="program-filter">Program</label>
+                    <div class="repo75-select-wrap">
+                      <select id="program-filter">
+                        <option value="">All CAS Programs (${rows.length})</option>
+                        ${CAS_PROGRAMS.map((program) => `
+                          <option value="${escapeHtml(program.toLowerCase())}">
+                            ${escapeHtml(program)} (${counts.get(program) || 0})
+                          </option>
+                        `).join('')}
+                      </select>
+                      ${chevronIcon(14)}
+                    </div>
+                  </section>
+
+                  <section class="repo75-filter-group">
+                    <div class="repo75-filter-label-row">
+                      <label>Research Year</label>
+                      <button id="repo-reset-year" type="button">Reset</button>
+                    </div>
+
+                    <div class="repo75-range-wrap">
+                      <div class="repo75-range-track"></div>
+                      <input
+                        id="year-min"
+                        class="repo75-range repo75-range-min"
+                        type="range"
+                        min="${years.min}"
+                        max="${years.max}"
+                        value="${years.min}"
+                        aria-label="Minimum research year"
+                      >
+                      <input
+                        id="year-max"
+                        class="repo75-range repo75-range-max"
+                        type="range"
+                        min="${years.min}"
+                        max="${years.max}"
+                        value="${years.max}"
+                        aria-label="Maximum research year"
+                      >
+                    </div>
+
+                    <div class="repo75-range-values">
+                      <span id="year-min-label">${years.min}</span>
+                      <span id="year-max-label">${years.max}</span>
+                    </div>
+                  </section>
+
+                  <section class="repo75-filter-group">
+                    <label for="adviser-filter">Adviser</label>
+                    <div class="repo75-select-wrap">
+                      <select id="adviser-filter">
+                        <option value="">All Advisers</option>
+                        ${advisers.map((adviser) => `
+                          <option value="${escapeHtml(adviser.toLowerCase())}">
+                            ${escapeHtml(adviser)}
+                          </option>
+                        `).join('')}
+                      </select>
+                      ${chevronIcon(14)}
+                    </div>
+                  </section>
+
+                  <div class="repo75-filter-actions">
+                    <button class="repo75-clear-button" id="repo-clear" type="button">
+                      Clear All
+                    </button>
+
+                    <button class="repo75-apply-button" id="repo-apply-filters" type="button">
+                      ${filterIcon(15)} Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </aside>
+
+              <div class="repo75-results">
+                <div class="repo75-active-filters" id="repo-active-filters" hidden></div>
+
+                <div class="repo75-grid list" id="repo-results"></div>
+
+                <div class="repo75-empty" id="repo-empty" hidden>
+                  ${icon('search', 32)}
+                  <h3>No matching research found</h3>
+                  <p>Try another search term or clear some filters.</p>
+                </div>
+
+                <nav class="repo75-pagination" id="repo-pagination" aria-label="Research pagination"></nav>
+              </div>
             </div>
           </div>
         </section>
@@ -304,38 +428,101 @@ export async function render({ currentUser } = {}) {
     </div>`;
 }
 
-function getSelectedPrograms() {
-  const checks = [...document.querySelectorAll('.program-check:checked')];
-  return checks.map((el) => el.value);
+function selectedFilterState() {
+  const program = String(document.getElementById('program-filter')?.value || '');
+  const adviser = String(document.getElementById('adviser-filter')?.value || '');
+  const minYear = Number(document.getElementById('year-min')?.value || defaultMinYear);
+  const maxYear = Number(document.getElementById('year-max')?.value || defaultMaxYear);
+
+  return { program, adviser, minYear, maxYear };
+}
+
+function activeFilterCount() {
+  const { program, adviser, minYear, maxYear } = selectedFilterState();
+  let count = 0;
+  if (program) count += 1;
+  if (adviser) count += 1;
+  if (minYear !== defaultMinYear || maxYear !== defaultMaxYear) count += 1;
+  return count;
+}
+
+function updateFilterCount() {
+  const badge = document.getElementById('repo-filter-count');
+  if (!badge) return;
+
+  const count = activeFilterCount();
+  badge.textContent = String(count);
+  badge.hidden = count === 0;
+}
+
+function updateActiveFilterChips() {
+  const container = document.getElementById('repo-active-filters');
+  if (!container) return;
+
+  const { program, adviser, minYear, maxYear } = selectedFilterState();
+  const chips = [];
+
+  if (program) {
+    const option = document.getElementById('program-filter')?.selectedOptions?.[0];
+    const label = String(option?.textContent || '').replace(/\s+\(\d+\)\s*$/, '').trim();
+    chips.push(`<span>${filterIcon(12)} Program: ${escapeHtml(label)}</span>`);
+  }
+
+  if (minYear !== defaultMinYear || maxYear !== defaultMaxYear) {
+    chips.push(`<span>${icon('clock', 12)} Year: ${minYear}–${maxYear}</span>`);
+  }
+
+  if (adviser) {
+    const option = document.getElementById('adviser-filter')?.selectedOptions?.[0];
+    chips.push(`<span>${icon('user', 12)} Adviser: ${escapeHtml(option?.textContent?.trim() || adviser)}</span>`);
+  }
+
+  container.innerHTML = chips.join('');
+  container.hidden = chips.length === 0;
+  updateFilterCount();
 }
 
 function filterRows() {
   const search = String(document.getElementById('repo-search')?.value || '').trim().toLowerCase();
-  const selectedPrograms = getSelectedPrograms();
-  const minYear = Number(document.getElementById('year-min')?.value || 0);
-  const maxYear = Number(document.getElementById('year-max')?.value || 9999);
+  const { program, adviser, minYear, maxYear } = selectedFilterState();
 
   filteredRows = allRows.filter((row) => {
-    const text = `${row.title || ''} ${row.authors || row.studentName || ''} ${row.program || ''} ${row.keywords || ''} ${row.adviserName || ''}`.toLowerCase();
-    const program = String(row.program || '').toLowerCase();
-    const year = Number(row.year || 0);
+    const text = [
+      row.title || '',
+      row.authors || row.studentName || '',
+      row.program || '',
+      row.keywords || '',
+      row.adviserName || '',
+      row.abstract || '',
+    ].join(' ').toLowerCase();
+
+    const rowProgram = String(row.program || '').toLowerCase();
+    const rowAdviser = String(row.adviserName || '').toLowerCase();
+    const rowYear = Number(row.year || 0);
 
     const matchesSearch = !search || text.includes(search);
-    const matchesProgram = selectedPrograms.length === 0 || selectedPrograms.includes(program);
-    const matchesYear = !year || (year >= minYear && year <= maxYear);
+    const matchesProgram = !program || rowProgram === program;
+    const matchesAdviser = !adviser || rowAdviser === adviser;
+    const matchesYear = !rowYear || (rowYear >= minYear && rowYear <= maxYear);
 
-    return matchesSearch && matchesProgram && matchesYear;
+    return matchesSearch && matchesProgram && matchesAdviser && matchesYear;
   });
 
   const sort = document.getElementById('repo-sort')?.value || 'newest';
+
   filteredRows.sort((a, b) => {
-    if (sort === 'title') return String(a.title || '').localeCompare(String(b.title || ''));
+    if (sort === 'title') {
+      return String(a.title || '').localeCompare(String(b.title || ''));
+    }
+
     const left = Number(a.publishedAt || 0) || Number(a.year || 0);
     const right = Number(b.publishedAt || 0) || Number(b.year || 0);
+
     return sort === 'oldest' ? left - right : right - left;
   });
 
   currentPage = 1;
+  updateActiveFilterChips();
   renderPage();
 }
 
@@ -343,10 +530,12 @@ function renderPage() {
   const results = document.getElementById('repo-results');
   const empty = document.getElementById('repo-empty');
   const showing = document.getElementById('repo-showing');
+
   if (!results || !empty || !showing) return;
 
   const total = filteredRows.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
   if (currentPage > totalPages) currentPage = totalPages;
 
   const start = total ? (currentPage - 1) * PAGE_SIZE : 0;
@@ -368,6 +557,7 @@ function renderPage() {
 function renderPagination(totalPages) {
   const nav = document.getElementById('repo-pagination');
   if (!nav) return;
+
   if (totalPages <= 1) {
     nav.innerHTML = '';
     return;
@@ -375,34 +565,60 @@ function renderPagination(totalPages) {
 
   const pages = [];
   const visible = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
-  const ordered = [...visible].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+  const ordered = [...visible]
+    .filter((page) => page >= 1 && page <= totalPages)
+    .sort((a, b) => a - b);
 
   let previous = 0;
-  ordered.forEach((p) => {
-    if (previous && p - previous > 1) pages.push('<span class="repo66-page-gap">…</span>');
-    pages.push(`<button type="button" class="${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`);
-    previous = p;
+
+  ordered.forEach((page) => {
+    if (previous && page - previous > 1) {
+      pages.push('<span class="repo75-page-gap">…</span>');
+    }
+
+    pages.push(`
+      <button type="button" class="${page === currentPage ? 'active' : ''}" data-page="${page}">
+        ${page}
+      </button>`);
+
+    previous = page;
   });
 
   nav.innerHTML = `
-    <button type="button" data-page="${Math.max(1, currentPage - 1)}" ${currentPage === 1 ? 'disabled' : ''}>‹</button>
+    <button
+      type="button"
+      data-page="${Math.max(1, currentPage - 1)}"
+      ${currentPage === 1 ? 'disabled' : ''}
+      aria-label="Previous page"
+    >‹</button>
+
     ${pages.join('')}
-    <button type="button" data-page="${Math.min(totalPages, currentPage + 1)}" ${currentPage === totalPages ? 'disabled' : ''}>›</button>
+
+    <button
+      type="button"
+      data-page="${Math.min(totalPages, currentPage + 1)}"
+      ${currentPage === totalPages ? 'disabled' : ''}
+      aria-label="Next page"
+    >›</button>
   `;
 
-  nav.querySelectorAll('button[data-page]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      currentPage = Number(btn.dataset.page);
+  nav.querySelectorAll('button[data-page]').forEach((button) => {
+    button.addEventListener('click', () => {
+      currentPage = Number(button.dataset.page);
       renderPage();
-      document.getElementById('repo-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('repo-results')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
     });
   });
 }
 
 async function downloadManuscript(button) {
   const original = button.innerHTML;
+
   button.disabled = true;
-  button.innerHTML = `${icon('download', 15)} Preparing...`;
+  button.innerHTML = `${icon('download', 15)} <span>Preparing...</span>`;
 
   try {
     const { metadata, blob } = await reconstructFile(button.dataset.file);
@@ -417,7 +633,7 @@ async function downloadManuscript(button) {
 }
 
 function bindDownloads() {
-  document.querySelectorAll('.repo66-download[data-file]').forEach((button) => {
+  document.querySelectorAll('.repo75-download[data-file]').forEach((button) => {
     button.addEventListener('click', () => downloadManuscript(button));
   });
 }
@@ -427,6 +643,7 @@ function updateYearLabels() {
   const max = document.getElementById('year-max');
   const minLabel = document.getElementById('year-min-label');
   const maxLabel = document.getElementById('year-max-label');
+
   if (!min || !max || !minLabel || !maxLabel) return;
 
   let minValue = Number(min.value);
@@ -444,79 +661,137 @@ function updateYearLabels() {
 
   minLabel.textContent = String(minValue);
   maxLabel.textContent = String(maxValue);
+  updateFilterCount();
 }
 
-function syncProgramAll() {
-  const all = document.getElementById('program-all');
-  const checks = [...document.querySelectorAll('.program-check')];
-  if (!all) return;
+function setFiltersOpen(open) {
+  filtersOpen = Boolean(open);
 
-  all.checked = checks.every((c) => !c.checked);
+  const panel = document.getElementById('repo-filter-panel');
+  const workspace = document.getElementById('repo-workspace');
+  const toggle = document.getElementById('repo-filter-toggle');
 
-  checks.forEach((check) => {
-    check.addEventListener('change', () => {
-      all.checked = checks.every((c) => !c.checked);
-      filterRows();
-    });
-  });
+  if (panel) panel.hidden = !filtersOpen;
+  workspace?.classList.toggle('filters-open', filtersOpen);
+  toggle?.classList.toggle('active', filtersOpen);
+  toggle?.setAttribute('aria-expanded', String(filtersOpen));
+}
 
-  all.addEventListener('change', () => {
-    if (all.checked) {
-      checks.forEach((c) => { c.checked = false; });
-      filterRows();
-    }
-  });
+function resetFilters({ includeSearch = false } = {}) {
+  const program = document.getElementById('program-filter');
+  const adviser = document.getElementById('adviser-filter');
+  const minYear = document.getElementById('year-min');
+  const maxYear = document.getElementById('year-max');
+  const sort = document.getElementById('repo-sort');
+  const search = document.getElementById('repo-search');
+
+  if (program) program.value = '';
+  if (adviser) adviser.value = '';
+  if (minYear) minYear.value = String(defaultMinYear);
+  if (maxYear) maxYear.value = String(defaultMaxYear);
+  if (sort) sort.value = 'newest';
+  if (includeSearch && search) search.value = '';
+
+  updateYearLabels();
+  filterRows();
 }
 
 export function mount() {
   const cleanups = [];
 
-  const menu = document.getElementById('repo66-menu');
-  const nav = document.getElementById('repo66-nav');
+  const menu = document.getElementById('repo75-menu');
+  const nav = document.getElementById('repo75-nav');
+
   const menuHandler = () => nav?.classList.toggle('open');
   menu?.addEventListener('click', menuHandler);
   cleanups.push(() => menu?.removeEventListener('click', menuHandler));
 
+  const filterToggle = document.getElementById('repo-filter-toggle');
+  const filterClose = document.getElementById('repo-filter-close');
+
+  const toggleFilters = () => setFiltersOpen(!filtersOpen);
+  const closeFilters = () => setFiltersOpen(false);
+
+  filterToggle?.addEventListener('click', toggleFilters);
+  filterClose?.addEventListener('click', closeFilters);
+
+  cleanups.push(() => filterToggle?.removeEventListener('click', toggleFilters));
+  cleanups.push(() => filterClose?.removeEventListener('click', closeFilters));
+
   const search = document.getElementById('repo-search');
   const searchButton = document.getElementById('repo-search-button');
+
   const searchHandler = () => filterRows();
+  const searchKeyHandler = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      filterRows();
+    }
+  };
+
   search?.addEventListener('input', searchHandler);
+  search?.addEventListener('keydown', searchKeyHandler);
   searchButton?.addEventListener('click', searchHandler);
+
   cleanups.push(() => search?.removeEventListener('input', searchHandler));
+  cleanups.push(() => search?.removeEventListener('keydown', searchKeyHandler));
   cleanups.push(() => searchButton?.removeEventListener('click', searchHandler));
 
   const minYear = document.getElementById('year-min');
   const maxYear = document.getElementById('year-max');
-  const yearHandler = () => {
-    updateYearLabels();
-    filterRows();
-  };
+
+  const yearHandler = () => updateYearLabels();
+
   minYear?.addEventListener('input', yearHandler);
   maxYear?.addEventListener('input', yearHandler);
+
   cleanups.push(() => minYear?.removeEventListener('input', yearHandler));
   cleanups.push(() => maxYear?.removeEventListener('input', yearHandler));
 
-  const sort = document.getElementById('repo-sort');
-  sort?.addEventListener('change', filterRows);
-  cleanups.push(() => sort?.removeEventListener('change', filterRows));
+  const program = document.getElementById('program-filter');
+  const adviser = document.getElementById('adviser-filter');
+
+  const stagedFilterHandler = () => updateFilterCount();
+
+  program?.addEventListener('change', stagedFilterHandler);
+  adviser?.addEventListener('change', stagedFilterHandler);
+
+  cleanups.push(() => program?.removeEventListener('change', stagedFilterHandler));
+  cleanups.push(() => adviser?.removeEventListener('change', stagedFilterHandler));
+
+  const apply = document.getElementById('repo-apply-filters');
+  const applyHandler = () => {
+    filterRows();
+
+    if (window.matchMedia('(max-width: 760px)').matches) {
+      setFiltersOpen(false);
+    }
+  };
+
+  apply?.addEventListener('click', applyHandler);
+  cleanups.push(() => apply?.removeEventListener('click', applyHandler));
 
   const clear = document.getElementById('repo-clear');
-  const clearHandler = () => {
-    if (search) search.value = '';
-    document.querySelectorAll('.program-check').forEach((c) => { c.checked = false; });
-    const all = document.getElementById('program-all');
-    if (all) all.checked = true;
+  const clearHandler = () => resetFilters({ includeSearch: false });
 
-    if (minYear) minYear.value = minYear.min;
-    if (maxYear) maxYear.value = maxYear.max;
-
-    if (sort) sort.value = 'newest';
-
-    updateYearLabels();
-    filterRows();
-  };
   clear?.addEventListener('click', clearHandler);
   cleanups.push(() => clear?.removeEventListener('click', clearHandler));
+
+  const resetYear = document.getElementById('repo-reset-year');
+  const resetYearHandler = () => {
+    if (minYear) minYear.value = String(defaultMinYear);
+    if (maxYear) maxYear.value = String(defaultMaxYear);
+    updateYearLabels();
+  };
+
+  resetYear?.addEventListener('click', resetYearHandler);
+  cleanups.push(() => resetYear?.removeEventListener('click', resetYearHandler));
+
+  const sort = document.getElementById('repo-sort');
+
+  const sortHandler = () => filterRows();
+  sort?.addEventListener('change', sortHandler);
+  cleanups.push(() => sort?.removeEventListener('change', sortHandler));
 
   const gridButton = document.getElementById('repo-grid-view');
   const listButton = document.getElementById('repo-list-view');
@@ -527,6 +802,7 @@ export function mount() {
     listButton?.classList.remove('active');
     renderPage();
   };
+
   const setList = () => {
     activeView = 'list';
     listButton?.classList.add('active');
@@ -536,22 +812,13 @@ export function mount() {
 
   gridButton?.addEventListener('click', setGrid);
   listButton?.addEventListener('click', setList);
+
   cleanups.push(() => gridButton?.removeEventListener('click', setGrid));
   cleanups.push(() => listButton?.removeEventListener('click', setList));
 
-  document.querySelectorAll('[data-collapse]').forEach((button) => {
-    const handler = () => {
-      const id = button.dataset.collapse;
-      const body = document.getElementById(`filter-${id}`);
-      body?.classList.toggle('collapsed');
-      button.classList.toggle('collapsed');
-    };
-    button.addEventListener('click', handler);
-    cleanups.push(() => button.removeEventListener('click', handler));
-  });
-
-  syncProgramAll();
   updateYearLabels();
+  updateFilterCount();
+  setFiltersOpen(false);
   filterRows();
 
   return () => cleanups.forEach((cleanup) => cleanup());
