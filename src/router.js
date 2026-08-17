@@ -23,10 +23,10 @@ import * as adviserHistory from './pages/adviser/history.js';
 import * as users from './pages/admin/users.js';
 import * as assignments from './pages/admin/assignments.js';
 import * as workflow from './pages/admin/workflow.js';
+import * as approved from './pages/admin/approved.js';
 import * as adminThesis from './pages/admin/thesis-detail.js';
 import * as archive from './pages/admin/archive.js';
 import * as reports from './pages/admin/reports.js';
-import * as system from './pages/admin/system.js';
 
 let activePageCleanup = null;
 
@@ -51,10 +51,10 @@ const routes = [
   { pattern: /^\/admin\/users$/, page: users, roles: ['admin'] },
   { pattern: /^\/admin\/assignments$/, page: assignments, roles: ['admin'] },
   { pattern: /^\/admin\/workflow$/, page: workflow, roles: ['admin'] },
+  { pattern: /^\/admin\/approved$/, page: approved, roles: ['admin'] },
   { pattern: /^\/admin\/thesis\/([^/]+)$/, page: adminThesis, roles: ['admin'], keys: ['id'] },
   { pattern: /^\/admin\/archive$/, page: archive, roles: ['admin'] },
   { pattern: /^\/admin\/reports$/, page: reports, roles: ['admin'] },
-  { pattern: /^\/admin\/system$/, page: system, roles: ['admin'] },
 ];
 
 function currentPath() {

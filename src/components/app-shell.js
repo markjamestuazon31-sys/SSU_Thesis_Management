@@ -20,10 +20,10 @@ const roleLinks = {
   admin: [
     { href: '/admin/users', label: 'User Management', icon: 'users' },
     { href: '/admin/assignments', label: 'Adviser Directory', icon: 'review' },
-    { href: '/admin/workflow', label: 'Thesis Workflow', icon: 'file' },
+    { href: '/admin/workflow', label: 'Thesis Review', icon: 'review' },
+    { href: '/admin/approved', label: 'Approved Theses', icon: 'check' },
     { href: '/admin/archive', label: 'Records Archive', icon: 'archive' },
     { href: '/admin/reports', label: 'Reports & Analytics', icon: 'chart' },
-    { href: '/admin/system', label: 'System Settings', icon: 'shield' },
   ],
 };
 
@@ -47,7 +47,8 @@ function nav(link, path) {
 
 export function renderAppShell({ pageHtml, profile, currentPath }) {
   const role = profile?.role || 'student';
-  const name = profile?.displayName || profile?.name || profile?.email || 'SSU User';
+  const storedName = profile?.displayName || profile?.name || profile?.email || 'SSU User';
+  const name = role === 'admin' ? 'CAS Thesis Administrator' : storedName;
   const initials = name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
   const roleTitle = role === 'admin' ? 'System Administrator' : role === 'adviser' ? 'Thesis Adviser' : 'Student Researcher';
 

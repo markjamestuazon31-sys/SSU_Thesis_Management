@@ -19,7 +19,7 @@ export const CAS_PROGRAMS = Object.freeze([
 export const PRIMARY_ADMIN = Object.freeze({
   uid: 'B12ivUlc7VQXFYe9au49L3nHLNw2',
   email: 'admin@cas.com',
-  displayName: 'SSU Thesis Administrator',
+  displayName: 'CAS Thesis Administrator',
   department: 'Samar State University',
 });
 
