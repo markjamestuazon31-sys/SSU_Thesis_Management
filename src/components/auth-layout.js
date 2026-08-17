@@ -13,7 +13,6 @@ export function authLayout({ title, subtitle, content, footer = '' }) {
         <div class="auth-brand-copy auth-brand-copy-campus">
           <p class="eyebrow light">Samar State University</p>
           <h1>Research made<br>organized,<br>reviewed, and<br>accessible.</h1>
-          <p>Professional thesis submission, adviser review, approval, archiving, and institutional repository workflow.</p>
         </div>
 
         <div class="auth-brand-foot auth-brand-foot-campus">
