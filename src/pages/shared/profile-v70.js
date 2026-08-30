@@ -56,7 +56,18 @@ export async function render({ profile }) {
         <span>Department / College</span>
         <input value="College of Arts and Sciences" disabled>
       </label>
-    </div>` : '';
+    </div>
+    <div class="form-grid two">
+      <label class="field">
+        <span>Registered research title</span>
+        <input value="${escapeHtml(profile.researchTitle || 'Not recorded for this legacy account')}" disabled>
+      </label>
+      <label class="field">
+        <span>Research year</span>
+        <input value="${escapeHtml(profile.researchYear || 'Not recorded')}" disabled>
+      </label>
+    </div>
+    <small>The registered research title and year cannot be changed from the profile because this pair is used to prevent duplicate accounts.</small>` : '';
 
   const adviserDepartment = profile.role === 'adviser' ? `
     <div class="form-grid two">

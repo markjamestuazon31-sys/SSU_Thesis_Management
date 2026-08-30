@@ -1,36 +1,55 @@
 import { getThesis, approveAndPublishThesis, archiveThesis } from '../../services/thesis.service.js';
 import { getReviews } from '../../services/review.service.js';
-import { reconstructFile } from '../../services/file.service.js';
-import { downloadBlob } from '../../utils/file.js';
+import { getFileMetadata } from '../../services/file.service.js';
+import { bindRealtimeFileDownloads } from '../../components/file-download.js';
 import { pageHeader, statusBadge, infoRow, emptyState } from '../../components/ui.js';
 import { escapeHtml } from '../../utils/dom.js';
 import { formatDateTime } from '../../utils/date.js';
+import { formatBytes } from '../../utils/format.js';
 import { toast } from '../../components/toast.js';
 import { icon } from '../../components/icons.js';
+import '../../styles/adviser-review-external-v80.css';
+
+async function fileMap(fileIds) {
+  const ids = [...new Set(fileIds.filter(Boolean))];
+  return new Map(await Promise.all(ids.map(async (fileId) => [
+    fileId,
+    await getFileMetadata(fileId).catch(() => null),
+  ])));
+}
+
+function reviewedAttachment(review, metadata) {
+  if (!review?.reviewedFileId) return '';
+  return `<div class="review-attachment-v80 admin-review-file-v80">
+    <div class="review-file-icon-v80 review-file-icon-v80--small">${icon('file', 19)}</div>
+    <div><span>Adviser reviewed copy</span><strong>${escapeHtml(metadata?.name || 'Reviewed manuscript')}</strong><small>${metadata?.size ? escapeHtml(formatBytes(Number(metadata.size))) : 'File attachment'}</small></div>
+    <button class="btn btn-secondary btn-sm" type="button" data-file-download="${escapeHtml(review.reviewedFileId)}" ${metadata?.status === 'ready' ? '' : 'disabled'}>${icon('download', 15)} Download</button>
+  </div>`;
+}
 
 export async function render({ params }) {
   const thesis = await getThesis(params.id);
   if (!thesis) return emptyState('Thesis not found', 'The requested thesis record does not exist.');
 
   const reviews = await getReviews(thesis.id);
+  const files = await fileMap([thesis.currentFileId, ...reviews.map((review) => review.reviewedFileId)]);
+  const currentFile = files.get(thesis.currentFileId);
   const awaitingAdmin = ['adviser_approved', 'recommended'].includes(thesis.status);
 
-  let actions = `<button class="btn btn-secondary" id="download-current" data-file="${escapeHtml(thesis.currentFileId || '')}">${icon('download')} Download</button>`;
-  if (awaitingAdmin) {
-    actions += `<button class="btn btn-primary" id="approve-publish">${icon('check', 16)} Approve & Publish</button>`;
-  }
+  let actions = `<button class="btn btn-secondary" type="button" data-file-download="${escapeHtml(thesis.currentFileId || '')}" ${currentFile?.status === 'ready' ? '' : 'disabled'}>${icon('download')} Download Student Manuscript</button>`;
+  if (awaitingAdmin) actions += `<button class="btn btn-primary" id="approve-publish">${icon('check', 16)} Approve & Publish</button>`;
   if (thesis.status !== 'archived') actions += '<button class="btn btn-danger" id="archive-thesis">Archive</button>';
 
   const finalReview = reviews.find((review) => ['adviser_approved', 'recommended'].includes(review.decision));
 
   return `${pageHeader(
     thesis.title,
-    'Final administrator review. Adviser-approved research can be approved and published to the repository in one action.',
+    'Final administrator review. The student manuscript and adviser review history remain separate and traceable by version.',
     actions,
   )}
   ${awaitingAdmin ? `<div class="notice-box success" style="margin-bottom:18px">
     <strong>Ready for final administrator approval</strong>
-    <p>The selected adviser has approved this research. Review the manuscript and metadata, then use <strong>Approve & Publish</strong>. The record will immediately appear in the public SSU Research Repository.</p>
+    <p>The adviser approved Version ${escapeHtml(String(finalReview?.sourceVersion || thesis.version || 1))}. Review the student manuscript and the adviser decision below, then use <strong>Approve & Publish</strong>.</p>
   </div>` : ''}
   <div class="detail-grid">
     <section class="panel">
@@ -40,6 +59,7 @@ export async function render({ params }) {
           ${infoRow('Student', thesis.studentName)}
           ${infoRow('Authors', thesis.authors || thesis.studentName)}
           ${infoRow('Program', thesis.program)}
+          ${infoRow('Research Year', thesis.year)}
           ${infoRow('Student-selected Adviser', thesis.adviserName || '—')}
           ${infoRow('Academic Year', thesis.academicYear)}
           ${infoRow('Version', String(thesis.version || 1))}
@@ -53,29 +73,27 @@ export async function render({ params }) {
     </section>
 
     <aside class="panel">
-      <div class="panel-header"><h2>Adviser review history</h2></div>
+      <div class="panel-header"><div><h2>Adviser review history</h2><p>Reviewed copies are preserved separately from student submissions.</p></div></div>
       <div class="panel-body timeline">
-        ${reviews.length ? reviews.map((review) => `<article class="timeline-item"><div class="timeline-dot"></div><div><div class="timeline-head"><strong>${escapeHtml(review.adviserName)}</strong>${statusBadge(review.decision)}</div><p>${escapeHtml(review.comment)}</p><small>${formatDateTime(review.createdAt)}</small></div></article>`).join('') : emptyState('No review yet', 'The selected adviser must review this thesis before final administrator approval.')}
+        ${reviews.length ? reviews.map((review) => {
+          const level = review.revisionLevel === 'major' ? 'Major Revision' : review.revisionLevel === 'minor' ? 'Minor Revision' : '';
+          return `<article class="timeline-item review-history-item-v80"><div class="timeline-dot"></div><div>
+            <div class="timeline-head"><div><strong>${escapeHtml(review.adviserName || 'Adviser')}</strong><span class="review-version-v80">Version ${escapeHtml(String(review.sourceVersion || '—'))}</span></div>${statusBadge(review.decision)}</div>
+            ${level ? `<span class="review-level-v80 review-level-v80--${escapeHtml(review.revisionLevel)}">${escapeHtml(level)}</span>` : ''}
+            <p>${escapeHtml(review.comment || 'No written feedback.')}</p>
+            ${reviewedAttachment(review, files.get(review.reviewedFileId))}
+            <small>${formatDateTime(review.createdAt)}</small>
+          </div></article>`;
+        }).join('') : emptyState('No review yet', 'The selected adviser must review this thesis before final administrator approval.')}
       </div>
     </aside>
   </div>`;
 }
 
 export function mount({ profile, params }) {
-  document.getElementById('download-current')?.addEventListener('click', async (event) => {
-    const button = event.currentTarget;
-    button.disabled = true;
-    try {
-      const { metadata, blob } = await reconstructFile(button.dataset.file);
-      downloadBlob(blob, metadata.name || 'manuscript');
-    } catch (error) {
-      toast(error.message, 'error');
-    } finally {
-      button.disabled = false;
-    }
-  });
+  const cleanupDownloads = bindRealtimeFileDownloads();
 
-  document.getElementById('approve-publish')?.addEventListener('click', async () => {
+  const approve = async () => {
     const confirmed = window.confirm('Approve this adviser-reviewed research and publish it to the SSU Research Repository?');
     if (!confirmed) return;
     try {
@@ -83,11 +101,11 @@ export function mount({ profile, params }) {
       toast('Research approved and published successfully.', 'success');
       location.hash = `#/admin/thesis/${params.id}?refresh=${Date.now()}`;
     } catch (error) {
-      toast(error.message, 'error');
+      toast(error?.message || 'Unable to approve and publish this research.', 'error');
     }
-  });
+  };
 
-  document.getElementById('archive-thesis')?.addEventListener('click', async () => {
+  const archive = async () => {
     const confirmed = window.confirm('Archive this thesis record?');
     if (!confirmed) return;
     try {
@@ -95,7 +113,16 @@ export function mount({ profile, params }) {
       toast('Thesis archived.', 'success');
       location.hash = `#/admin/thesis/${params.id}?refresh=${Date.now()}`;
     } catch (error) {
-      toast(error.message, 'error');
+      toast(error?.message || 'Unable to archive this thesis.', 'error');
     }
-  });
+  };
+
+  document.getElementById('approve-publish')?.addEventListener('click', approve);
+  document.getElementById('archive-thesis')?.addEventListener('click', archive);
+
+  return () => {
+    cleanupDownloads?.();
+    document.getElementById('approve-publish')?.removeEventListener('click', approve);
+    document.getElementById('archive-thesis')?.removeEventListener('click', archive);
+  };
 }

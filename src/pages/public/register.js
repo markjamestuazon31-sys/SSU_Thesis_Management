@@ -10,6 +10,9 @@ function programOptions() {
     .join('');
 }
 
+const currentResearchYear = new Date().getFullYear();
+const latestResearchYear = currentResearchYear + 1;
+
 export async function render() {
   return authLayout({
     title: 'Create student account',
@@ -42,6 +45,18 @@ export async function render() {
         </label>
 
         <label class="field">
+          <span>Research title</span>
+          <input name="researchTitle" minlength="5" maxlength="240" autocomplete="off" placeholder="Enter the complete research title" required>
+          <small>Capitalization and extra spaces are ignored when checking for duplicates.</small>
+        </label>
+
+        <label class="field">
+          <span>Research year</span>
+          <input name="researchYear" type="number" inputmode="numeric" min="1900" max="${latestResearchYear}" value="${currentResearchYear}" required>
+          <small>The same research title may be registered in a different year, but not twice in the same year.</small>
+        </label>
+
+        <label class="field">
           <span>Email address</span>
           <input name="email" type="email" autocomplete="email" required>
         </label>
@@ -56,8 +71,8 @@ export async function render() {
       </form>
 
       <div class="notice-box info" style="margin-top:16px">
-        <strong>Thesis adviser selection</strong>
-        <p>After registration, you may submit research and choose one active adviser from the adviser accounts created by the administrator.</p>
+        <strong>Unique research registration</strong>
+        <p>Your research title and year are permanently linked to this student account. If that same title and year are already registered, account creation will be stopped.</p>
       </div>`,
     footer: `Already registered? <a href="#/login">Sign in</a> • <a href="#/repository">Repository</a>`
   });

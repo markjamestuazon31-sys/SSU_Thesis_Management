@@ -1,13 +1,17 @@
 import {
+  endAt,
   equalTo,
   get,
   onValue,
   orderByChild,
+  orderByKey,
   push,
   query,
   ref,
   remove,
+  runTransaction,
   set,
+  startAt,
   update,
 } from 'firebase/database';
 import { db } from '../config/firebase.js';
@@ -19,6 +23,22 @@ function ensureDb() {
 
 export async function getValue(path) {
   const snapshot = await get(ref(ensureDb(), path));
+  return snapshot.exists() ? snapshot.val() : null;
+}
+
+/**
+ * Reads an inclusive key range without downloading the entire parent node.
+ * This is especially important for large manuscripts stored as hundreds of
+ * Realtime Database chunks.
+ */
+export async function getKeyRange(path, startKey, endKey) {
+  const rangeQuery = query(
+    ref(ensureDb(), path),
+    orderByKey(),
+    startAt(String(startKey)),
+    endAt(String(endKey)),
+  );
+  const snapshot = await get(rangeQuery);
   return snapshot.exists() ? snapshot.val() : null;
 }
 
@@ -39,6 +59,19 @@ export async function updateRoot(updates) {
 
 export async function removeValue(path) {
   await remove(ref(ensureDb(), path));
+}
+
+/**
+ * Atomically creates a value only when its path is still empty. This prevents
+ * two concurrent registrations from both reserving the same research title.
+ */
+export async function createValueIfAbsent(path, value) {
+  const result = await runTransaction(
+    ref(ensureDb(), path),
+    (current) => (current === null ? value : undefined),
+    { applyLocally: false },
+  );
+  return result.committed;
 }
 
 export function createKey(path) {

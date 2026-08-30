@@ -13,8 +13,22 @@ import {
 import { auth } from '../config/firebase.js';
 import { firebaseConfig } from '../config/firebase-config.js';
 import { CAS_PROGRAMS, PRIMARY_ADMIN } from '../config/app.config.js';
-import { getValue, setValue, updateRoot, updateValue } from './db.service.js';
-import { validEmail, validPassword } from '../utils/validation.js';
+import {
+  createValueIfAbsent,
+  getValue,
+  removeValue,
+  setValue,
+  updateRoot,
+  updateValue,
+} from './db.service.js';
+import {
+  normalizeResearchTitle,
+  researchRegistrationKey,
+  validEmail,
+  validPassword,
+  validResearchTitle,
+  validResearchYear,
+} from '../utils/validation.js';
 import { logAudit } from './audit.service.js';
 import { getProfilePhoto } from './profile-photo.service.js';
 
@@ -112,6 +126,10 @@ export async function registerStudent(payload) {
   const email = validEmail(payload.email);
   const password = validPassword(payload.password);
   const displayName = String(payload.displayName || '').trim();
+  const researchTitle = validResearchTitle(payload.researchTitle);
+  const researchTitleNormalized = normalizeResearchTitle(researchTitle);
+  const researchYear = validResearchYear(payload.researchYear);
+  const registrationKey = researchRegistrationKey(researchTitleNormalized);
 
   if (!displayName) throw new Error('Full name is required.');
 
@@ -121,9 +139,28 @@ export async function registerStudent(payload) {
   }
 
   const credential = await createUserWithEmailAndPassword(ensureAuth(), email, password);
+  const claimPath = `researchRegistrationClaims/${researchYear}/${registrationKey}`;
+  let claimCreated = false;
   try {
     await updateProfile(credential.user, { displayName });
     const now = Date.now();
+    claimCreated = await createValueIfAbsent(claimPath, {
+      uid: credential.user.uid,
+      researchTitle,
+      researchTitleNormalized,
+      researchYear,
+      registrationKey,
+      createdAt: now,
+    });
+
+    if (!claimCreated) {
+      const duplicateError = new Error(
+        `An account already exists for the research title “${researchTitle}” in ${researchYear}. Use a different title or verify the research year.`,
+      );
+      duplicateError.code = 'research/duplicate-title-year';
+      throw duplicateError;
+    }
+
     const profile = {
       email,
       displayName,
@@ -134,6 +171,10 @@ export async function registerStudent(payload) {
       department: 'College of Arts and Sciences',
       adviserUid: '',
       adviserName: '',
+      researchTitle,
+      researchTitleNormalized,
+      researchYear,
+      researchRegistrationKey: registrationKey,
       createdAt: now,
       updatedAt: now,
       registrationSource: 'student_self_registration',
@@ -143,6 +184,7 @@ export async function registerStudent(payload) {
     await logAudit(credential.user.uid, 'student_registered', { email }).catch(() => {});
     return { uid: credential.user.uid, ...profile };
   } catch (error) {
+    if (claimCreated) await removeValue(claimPath).catch(() => {});
     await deleteUser(credential.user).catch(() => {});
     throw error;
   }

@@ -1,0 +1,21 @@
+/* Adviser and administrator research monitoring filters v7.7 */
+.research-filter-panel{margin-bottom:18px;border-color:#d8e3ec}
+.research-filter-header{align-items:flex-end;gap:20px}
+.research-filter-header>div:first-child{display:block;min-width:0}
+.research-filter-header h2{margin:3px 0 5px}
+.research-filter-header p:last-child{max-width:760px;margin:0;color:#6f8293;font-size:12px}
+.research-filter-result{flex:0 0 auto;display:flex;align-items:baseline;gap:6px;padding:9px 12px;border:1px solid #d5e1ea;border-radius:10px;background:#f7fafc;color:#698093}
+.research-filter-result strong{color:#0a4d81;font-size:20px}
+.research-filter-result span{font-size:11px;font-weight:750}
+.research-filter-grid{display:grid;grid-template-columns:minmax(240px,1.4fr) repeat(3,minmax(150px,.75fr)) auto;align-items:end;gap:13px;background:linear-gradient(180deg,#fff,#fbfdff)}
+.research-filter-grid-wide{grid-template-columns:minmax(240px,1.3fr) repeat(5,minmax(140px,.7fr)) auto}
+.research-filter-grid .field input,.research-filter-grid .field select{min-height:43px;border-radius:9px;background:#fff}
+.research-filter-clear{min-height:43px;white-space:nowrap}
+.research-monitor-panel{margin-top:18px}
+.research-monitor-panel .panel-header>div{display:block}
+.research-monitor-panel .panel-header h2{margin:3px 0 5px}
+.research-monitor-panel .panel-header p:last-child{margin:0;color:#6f8293;font-size:12px}
+.research-monitor-meta{color:#647b8e;font-size:12px;font-weight:750}
+.adviser-workspace-stats{margin-bottom:18px}
+@media(max-width:1320px){.research-filter-grid,.research-filter-grid-wide{grid-template-columns:repeat(3,minmax(0,1fr))}.research-filter-search{grid-column:span 2}}
+@media(max-width:760px){.research-filter-header{align-items:stretch;flex-direction:column}.research-filter-result{align-self:flex-start}.research-filter-grid,.research-filter-grid-wide{grid-template-columns:1fr}.research-filter-search{grid-column:auto}.research-filter-clear{width:100%}}

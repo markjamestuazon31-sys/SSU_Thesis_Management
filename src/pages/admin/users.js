@@ -26,13 +26,16 @@ export async function render({ profile }) {
     <div class="panel-body no-pad">
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>User</th><th>Role</th><th>ID</th><th>Status</th><th>Created</th><th></th></tr></thead>
+          <thead><tr><th>User</th><th>Role</th><th>ID</th><th>Registered research</th><th>Status</th><th>Created</th><th></th></tr></thead>
           <tbody>${users.map((user) => {
             const isPrimaryAdmin = user.id === PRIMARY_ADMIN.uid;
             return `<tr>
               <td><div class="table-title">${escapeHtml(user.displayName || 'Unnamed')}</div><div class="table-subtitle">${escapeHtml(user.email || '')}</div></td>
               <td>${roleBadge(user.role)}${isPrimaryAdmin ? '<div class="table-subtitle">Primary administrator</div>' : ''}</td>
               <td>${escapeHtml(user.studentId || user.employeeId || '—')}</td>
+              <td>${user.role === 'student'
+                ? `<div class="table-title">${escapeHtml(user.researchTitle || 'Not recorded')}</div><div class="table-subtitle">${escapeHtml(user.researchYear || 'Legacy account')}</div>`
+                : '—'}</td>
               <td><span class="status status-${user.status === 'active' ? 'published' : 'archived'}">${escapeHtml(user.status || 'active')}</span></td>
               <td>${formatDate(user.createdAt)}</td>
               <td>${isPrimaryAdmin

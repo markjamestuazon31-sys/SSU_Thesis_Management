@@ -3,8 +3,8 @@ export const APP_CONFIG = Object.freeze({
   shortName: 'SSU TMS',
   institution: 'Samar State University',
   unit: 'College of Arts and Sciences',
-  version: '6.2.0',
-  maxFileSizeBytes: 10 * 1024 * 1024,
+  version: '7.0.0',
+  maxFileSizeBytes: 100 * 1024 * 1024,
   fileChunkBytes: 128 * 1024,
   acceptedExtensions: ['pdf', 'docx'],
 });

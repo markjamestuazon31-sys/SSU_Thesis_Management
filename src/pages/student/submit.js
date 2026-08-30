@@ -5,8 +5,10 @@ import { getSubmissionAdvisers } from '../../services/user.service.js';
 import { escapeHtml, formDataObject, setButtonLoading } from '../../utils/dom.js';
 import { toast } from '../../components/toast.js';
 import { icon } from '../../components/icons.js';
+import { APP_CONFIG } from '../../config/app.config.js';
 
 const currentYear = new Date().getFullYear();
+const maxFileSizeMb = Math.round(APP_CONFIG.maxFileSizeBytes / (1024 * 1024));
 
 function yearOptions(selectedYear = currentYear) {
   const years = [];
@@ -212,7 +214,7 @@ export async function render({ profile }) {
               <div class="dropzone-copy">
                 <strong>Drop your manuscript here</strong>
                 <span>or <button type="button" class="dropzone-browse" id="browse-file">browse from your device</button></span>
-                <small>PDF or DOCX only · Maximum 10 MB · File signature validated before upload</small>
+                <small>PDF or DOCX only · Maximum ${maxFileSizeMb} MB · File signature validated before upload</small>
               </div>
             </div>
 
