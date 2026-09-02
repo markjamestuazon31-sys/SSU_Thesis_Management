@@ -15,8 +15,8 @@ function approvedDate(item) {
 function table(rows) {
   if (!rows.length) {
     return emptyState(
-      'No approved theses found',
-      'Theses will appear here after the administrator gives final approval.'
+      'No approved thesis records found',
+      'Thesis records will appear here after the administrator gives final approval.'
     );
   }
 
@@ -30,7 +30,7 @@ function table(rows) {
             <th>Adviser</th>
             <th>Status</th>
             <th>Admin Approval</th>
-            <th></th>
+            <th class="table-action-heading">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -49,8 +49,8 @@ function table(rows) {
               <td>${statusBadge(item.status)}</td>
               <td>${formatDate(approvedDate(item))}</td>
               <td class="table-action">
-                <a class="text-link" href="#/admin/thesis/${item.id}">
-                  View ${icon('arrow', 15)}
+                <a class="table-record-action" href="#/admin/thesis/${item.id}">
+                  ${icon('eye', 15)} <span>View record</span>
                 </a>
               </td>
             </tr>
@@ -70,8 +70,8 @@ export async function render() {
 
   return `
     ${pageHeader(
-      'Approved Theses',
-      'Final administrator-approved research records, including theses already published in the institutional repository.'
+      'Approved Thesis Records',
+      'Final administrator-approved research records, including thesis records already published in the institutional repository.'
     )}
 
     <section class="approved-summary-grid">
@@ -110,7 +110,7 @@ export async function render() {
             >
           </label>
 
-          <select id="approved-program" aria-label="Filter approved theses by program">
+          <select id="approved-program" aria-label="Filter approved thesis records by program">
             <option value="">All CAS Programs</option>
             ${CAS_PROGRAMS.map((program) =>
               `<option value="${escapeHtml(program.toLowerCase())}">${escapeHtml(program)}</option>`

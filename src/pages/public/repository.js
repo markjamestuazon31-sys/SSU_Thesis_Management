@@ -253,7 +253,7 @@ export async function render({ currentUser } = {}) {
               <h1>Explore published<br>research from<br><em>Samar State University.</em></h1>
 
               <p>
-                Discover, access, and share scholarly works, theses, and academic research
+                Discover, access, and share scholarly works, thesis records, and academic research
                 produced by the College of Arts and Sciences.
               </p>
 
@@ -261,7 +261,7 @@ export async function render({ currentUser } = {}) {
                 <input
                   id="repo-search"
                   type="search"
-                  placeholder="Search for theses, authors, keywords, or topics..."
+                  placeholder="Search thesis records, authors, keywords, or topics..."
                   autocomplete="off"
                 >
                 <button id="repo-search-button" type="button">

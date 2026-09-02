@@ -58,7 +58,7 @@ export async function render({ profile }) {
           </div>
           <div class="form-actions" style="margin-top:18px">
             <a class="btn btn-secondary" href="#/dashboard">Return to dashboard</a>
-            <a class="btn btn-primary" href="#/student/theses">My theses</a>
+            <a class="btn btn-primary" href="#/student/theses">My thesis records</a>
           </div>
         </div>
       </section>`;

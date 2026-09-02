@@ -178,7 +178,7 @@ function keywordChips(value) {
 function quick(role) {
   if (role === 'student') {
     return `<a class="quick-action" href="#/student/submit"><span class="quick-action-icon">${icon('upload', 18)}</span><div><strong>Submit a thesis</strong><span>Create metadata and upload a manuscript.</span></div>${icon('arrow', 16)}</a>
-      <a class="quick-action" href="#/student/theses"><span class="quick-action-icon">${icon('file', 18)}</span><div><strong>Track my theses</strong><span>Review status and adviser feedback.</span></div>${icon('arrow', 16)}</a>
+      <a class="quick-action" href="#/student/theses"><span class="quick-action-icon">${icon('file', 18)}</span><div><strong>Track my thesis records</strong><span>Review status and adviser feedback.</span></div>${icon('arrow', 16)}</a>
       <a class="quick-action" href="#/repository"><span class="quick-action-icon">${icon('repository', 18)}</span><div><strong>Research repository</strong><span>Search all published CAS research.</span></div>${icon('arrow', 16)}</a>`;
   }
   if (role === 'adviser') {

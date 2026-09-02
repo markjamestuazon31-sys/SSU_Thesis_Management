@@ -21,7 +21,7 @@ const roleLinks = {
     { href: '/admin/users', label: 'User Management', icon: 'users' },
     { href: '/admin/assignments', label: 'Adviser Directory', icon: 'review' },
     { href: '/admin/workflow', label: 'Thesis Review', icon: 'review' },
-    { href: '/admin/approved', label: 'Approved Theses', icon: 'check' },
+    { href: '/admin/approved', label: 'Approved Thesis Records', icon: 'check' },
     { href: '/admin/archive', label: 'Records Archive', icon: 'archive' },
     { href: '/admin/reports', label: 'Reports & Analytics', icon: 'chart' },
   ],

@@ -23,7 +23,7 @@ function submissionTable(rows) {
     showProgram: true,
     showYear: true,
     showAdviser: true,
-    actionLabel: 'Open',
+    actionLabel: 'View record',
     actionRoute: (id) => `/admin/thesis/${id}`,
   });
 }

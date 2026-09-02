@@ -41,7 +41,7 @@ export async function getDashboardData(profile) {
 
     return {
       stats: [
-        { label: 'Assigned Theses', value: String(theses.length), iconName: 'file' },
+        { label: 'Assigned Thesis Records', value: String(theses.length), iconName: 'file' },
         { label: 'For Review', value: String(theses.filter((item) => ['submitted', 'under_review'].includes(item.status)).length), iconName: 'review' },
         { label: 'Revision Cycle', value: String(count(theses, 'revision_required')), iconName: 'clock' },
         { label: 'Published Research', value: String(published.length), iconName: 'repository' },

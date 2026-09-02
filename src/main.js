@@ -1,5 +1,6 @@
 import { isFirebaseConfigured } from './config/firebase-config.js';
 import { firebaseReady } from './config/firebase.js';
+import './styles/readability-v82.css';
 import { renderSplash } from './pages/public/splash.js';
 import { store } from './core/store.js';
 import { ensurePrimaryAdminProfile, getUserProfile, subscribeToAuth, logout } from './services/auth.service.js';

@@ -1,0 +1,294 @@
+/* Readability v8.2 — clear system typography across the complete website. */
+:root{
+  font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+
+html,body{
+  font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif!important;
+  font-size:15px!important;
+  line-height:1.55;
+  letter-spacing:-.005em;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+body button,body input,body textarea,body select{
+  font-family:inherit!important;
+}
+
+.app-shell{
+  --muted:#596579;
+  font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  letter-spacing:-.005em;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Login, registration, configuration, and startup screens */
+.auth-page,.auth-page-campus,.config-page,.splash-screen{
+  font-family:inherit!important;
+  font-size:15px;
+  line-height:1.6;
+}
+.auth-brand-copy-campus h1,.auth-card-campus h2,.auth-brand-copy h1,.auth-card h2{
+  font-family:inherit!important;
+  letter-spacing:-.035em!important;
+}
+.auth-brand-copy-campus>p:last-child,.auth-brand-copy>p:last-child{
+  font-size:17px!important;
+  line-height:1.75!important;
+}
+.auth-card-campus .auth-subtitle,.auth-card .auth-subtitle{
+  font-size:15px!important;
+  line-height:1.65!important;
+}
+.auth-card-campus .field span,.auth-card .field>span{
+  font-size:14px!important;
+  line-height:1.45!important;
+}
+.auth-card-campus input,.auth-card-campus select,.auth-card input,.auth-card select{
+  min-height:48px;
+  font-size:15px!important;
+}
+.auth-card-campus .btn,.auth-card .btn{
+  min-height:46px;
+  font-size:14px!important;
+}
+.auth-card-campus .auth-divider,.auth-card .auth-divider,.auth-footer{
+  font-size:13px!important;
+  line-height:1.55;
+}
+.config-card p,.config-card li{font-size:15px!important;line-height:1.7}
+.config-card .field>span{font-size:14px!important}
+
+/* Shared public-site header, navigation, content, and footer */
+.ssu-public-site,.repo75-page{
+  font-family:inherit!important;
+  font-size:15px;
+  line-height:1.6;
+  text-rendering:optimizeLegibility;
+}
+.ssu-public-site h1,.ssu-public-site h2,.ssu-public-site h3,
+.repo75-page h1,.repo75-page h2,.repo75-page h3,.repo75-page h4,
+.repo75-brand-copy strong,.repo75-stats strong{
+  font-family:inherit!important;
+}
+.ssu-utility-inner,.ssu-utility-inner a{font-size:12px!important;line-height:1.45}
+.ssu-brand-copy strong{font-size:18px!important;line-height:1.3}
+.ssu-brand-copy span{font-size:12px!important;line-height:1.4}
+.ssu-brand-copy small{font-size:11px!important;line-height:1.4}
+.ssu-primary-nav a{font-size:14px!important;line-height:1.4}
+.ssu-public-site .ssu-section-kicker{font-size:12px!important;line-height:1.4}
+.ssu-public-footer,.ssu-public-footer a,.ssu-public-footer span{font-size:13px!important;line-height:1.6}
+.ssu-public-footer h3{font-size:15px!important}
+
+/* Public repository listing */
+.repo75-brand-copy strong{font-size:21px!important;line-height:1.2}
+.repo75-brand-copy span{font-size:12px!important}
+.repo75-brand-copy small{font-size:11px!important}
+.repo75-nav a{font-size:14px!important;line-height:1.4}
+.repo75-hero h1{font-family:inherit!important;line-height:1.06!important;letter-spacing:-.035em!important}
+.repo75-hero p{font-size:16px!important;line-height:1.75!important}
+.repo75-search input{font-size:15px!important}
+.repo75-search button{font-size:13px!important}
+.repo75-stats small{font-size:12px!important;line-height:1.4}
+.repo75-page button,.repo75-page input,.repo75-page select{font-size:14px!important;line-height:1.4}
+.repo75-filter-eyebrow{font-size:11px!important}
+.repo75-filter-group label,.repo75-sort-control>span{font-size:13px!important;line-height:1.4}
+.repo75-showing{font-size:13px!important}
+.repo75-card h3,.repo75-card h3 a{font-family:inherit!important;font-size:21px!important;line-height:1.3!important}
+.repo75-author{font-size:14px!important;line-height:1.55}
+.repo75-abstract{font-size:14px!important;line-height:1.75!important}
+.repo75-keywords,.repo75-keywords span{font-size:12px!important;line-height:1.4}
+.repo75-page [class*="meta"] span{font-size:11px!important;line-height:1.4}
+.repo75-page [class*="meta"] strong{font-size:13px!important;line-height:1.5}
+.repo75-card-actions a,.repo75-card-actions button{font-size:13px!important;line-height:1.4}
+.repo75-page .repo75-empty p{font-size:14px!important;line-height:1.6}
+
+/* Public record detail and About page */
+.public-record-back{font-size:13px!important}
+.public-record-source{font-size:13px!important;line-height:1.5}
+.public-record-meta-grid span,.public-record-meta-grid-v62 span{font-size:11px!important;line-height:1.4}
+.public-record-meta-grid strong,.public-record-meta-grid-v62 strong{font-size:14px!important;line-height:1.55}
+.public-record-section h2,.public-record-section-v62 h2{font-size:21px!important;line-height:1.35}
+.public-record-section p,.public-record-section-v62 p{font-size:15px!important;line-height:1.85!important}
+.public-manuscript-access h2,.public-manuscript-access-v62 h2{font-size:17px!important}
+.public-manuscript-access p,.public-manuscript-access-v62 p{font-size:14px!important;line-height:1.65!important}
+.about-page-copy>p{font-size:15px!important;line-height:1.8!important}
+.about-principles strong{font-size:14px!important;line-height:1.45}
+.about-principles span{font-size:13px!important;line-height:1.6}
+.about-workflow-card strong{font-size:14px!important;line-height:1.45}
+.about-workflow-card small{font-size:13px!important;line-height:1.6}
+
+.app-shell button,.app-shell input,.app-shell textarea,.app-shell select{
+  font-family:inherit;
+  letter-spacing:normal;
+}
+
+/* Navigation and identity */
+.app-shell .brand strong{font-size:17px!important;line-height:1.3}
+.app-shell .brand span{font-size:12px!important;line-height:1.4}
+.app-shell .sidebar-campus-card>span{font-size:11px!important;line-height:1.4}
+.app-shell .sidebar-campus-card>strong{font-size:13px!important;line-height:1.45}
+.app-shell .sidebar-campus-card>small{font-size:11px!important;line-height:1.4}
+.app-shell .sidebar-label{font-size:11px!important;line-height:1.4;letter-spacing:.1em}
+.app-shell .nav-link{min-height:44px;font-size:14px!important;line-height:1.4;font-weight:650}
+.app-shell .sidebar-user strong{font-size:13px!important;line-height:1.35}
+.app-shell .sidebar-user span{font-size:11px!important;line-height:1.4;letter-spacing:.04em}
+.app-shell .topbar-title span{font-size:11px!important}
+.app-shell .topbar-title strong{font-size:15px!important;line-height:1.35}
+.app-shell .topbar-profile strong{font-size:13px!important}
+.app-shell .topbar-profile span{font-size:11px!important}
+.app-shell .topbar-repository-link{font-size:13px!important;font-weight:700}
+
+/* Page and panel hierarchy */
+.app-shell .page-header h1{font-size:clamp(29px,3vw,34px)!important;line-height:1.18;letter-spacing:-.025em}
+.app-shell .page-header>div>p:last-child{font-size:15px!important;line-height:1.65;color:#596579}
+.app-shell .eyebrow{font-size:12px!important;line-height:1.4;letter-spacing:.09em}
+.app-shell .panel-header h2{font-size:18px!important;line-height:1.35}
+.app-shell .panel-header p,.app-shell .panel-header p:last-child{font-size:14px!important;line-height:1.6;color:#596d7f}
+.app-shell .panel-meta,.app-shell .research-monitor-meta{font-size:12px!important;line-height:1.4}
+.app-shell .panel-body{font-size:14px;line-height:1.6}
+.app-shell .content-section h3{font-size:16px!important;line-height:1.4}
+
+/* Buttons, fields, and supporting text */
+.app-shell .btn{min-height:42px;font-size:14px!important;line-height:1.35;font-weight:700}
+.app-shell .btn-sm{min-height:36px;font-size:13px!important;padding:8px 11px}
+.app-shell .link-button,.app-shell .text-link,.app-shell .back-link{font-size:13px!important;line-height:1.45}
+.app-shell .field>span{font-size:13px!important;line-height:1.45;font-weight:700}
+.app-shell .field input,.app-shell .field textarea,.app-shell .field select,.app-shell .assignment-select{
+  min-height:44px;
+  font-size:15px!important;
+  line-height:1.45;
+}
+.app-shell .field textarea{line-height:1.6}
+.app-shell .field small,.app-shell small{font-size:12px!important;line-height:1.5}
+.app-shell .checkbox,.app-shell .switch-row span{font-size:13px!important;line-height:1.5}
+
+/* Statistics, cards, and common messages */
+.app-shell .stat-main>span,.app-shell .stats-grid .stat-main>span{font-size:12px!important;line-height:1.4;letter-spacing:.035em}
+.app-shell .stat-main strong{font-size:28px!important;line-height:1.1}
+.app-shell .stat-main small{font-size:12px!important;line-height:1.45}
+.app-shell .quick-action strong{font-size:14px!important;line-height:1.4}
+.app-shell .quick-action span,.app-shell .notice-box p{font-size:13px!important;line-height:1.55}
+.app-shell .empty-state h3{font-size:18px!important;line-height:1.4}
+.app-shell .empty-state p{font-size:14px!important;line-height:1.6}
+.app-shell .toast{font-size:14px;line-height:1.5}
+.app-shell .modal-header h3{font-size:18px!important}
+.app-shell .modal-body{font-size:14px;line-height:1.6}
+
+/* Tables and record details */
+.app-shell .data-table{font-size:13px!important;line-height:1.5}
+.app-shell .data-table th{font-size:11px!important;line-height:1.35;letter-spacing:.055em;padding-block:12px}
+.app-shell .data-table td{font-size:13px!important;line-height:1.5;padding-block:13px}
+.app-shell .table-title{font-size:14px!important;line-height:1.45}
+.app-shell .table-subtitle{font-size:12px!important;line-height:1.45}
+.app-shell .status,.app-shell .role-badge{font-size:11px!important;line-height:1.35;padding:6px 9px}
+.app-shell .info-row{font-size:14px;line-height:1.55;padding-block:13px}
+.app-shell .timeline-item p{font-size:14px!important;line-height:1.6}
+.app-shell .timeline-item small{font-size:12px!important}
+
+/* Professional record actions: readable labels that never split across lines. */
+.app-shell .data-table .table-action-heading,
+.app-shell .data-table .table-action{
+  width:132px;
+  min-width:132px;
+  text-align:right;
+  white-space:nowrap;
+}
+.app-shell .table-record-action{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-width:116px;
+  min-height:36px;
+  padding:7px 11px;
+  border:1px solid #c8d7e3;
+  border-radius:9px;
+  background:#fff;
+  color:#0b4f83;
+  font-size:13px!important;
+  font-weight:750;
+  line-height:1.25;
+  text-decoration:none;
+  white-space:nowrap;
+  overflow-wrap:normal!important;
+  word-break:keep-all;
+  box-shadow:0 1px 2px rgba(16,54,82,.04);
+  transition:border-color .16s ease,background-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+.app-shell .table-record-action span{
+  white-space:nowrap;
+  overflow-wrap:normal!important;
+  word-break:keep-all;
+}
+.app-shell .table-record-action:hover{
+  border-color:#8fb1ca;
+  background:#f3f8fc;
+  color:#073d65;
+  box-shadow:0 4px 12px rgba(11,79,131,.1);
+  transform:translateY(-1px);
+}
+.app-shell .table-record-action:focus-visible{
+  outline:3px solid rgba(31,122,181,.22);
+  outline-offset:2px;
+}
+
+/* Admin monitoring and report builder */
+.app-shell .admin-review-summary-card span:not(.admin-review-summary-icon),
+.app-shell .approved-summary-card span:not(.approved-summary-icon){font-size:12px!important;line-height:1.4;letter-spacing:.045em}
+.app-shell .admin-review-flow{font-size:13px!important;line-height:1.45}
+.app-shell .research-filter-header p:last-child,.app-shell .research-monitor-panel .panel-header p:last-child{font-size:14px!important;line-height:1.6}
+.app-shell .research-filter-result span{font-size:12px!important}
+.app-shell .report-filter-count span{font-size:11px!important}
+.app-shell .report-filter-tags span{font-size:11px!important}
+.app-shell .report-row>span{font-size:13px!important;line-height:1.45}
+.app-shell .report-row strong{font-size:13px!important}
+.app-shell .report-row small{font-size:11px!important}
+.app-shell .analytics-live-banner strong{font-size:13px!important;line-height:1.4}
+.app-shell .analytics-live-banner span:not(.live-dot):not(.analytics-db-label){font-size:12px!important;line-height:1.45}
+.app-shell .analytics-db-label{font-size:10px!important}
+.app-shell .analytics-role-grid strong{font-size:24px!important}
+.app-shell .analytics-role-grid span{font-size:12px!important;line-height:1.4}
+
+/* Review workspace text */
+.app-shell .review-kicker-v80,.app-shell .review-section-heading-v80>span{font-size:11px!important}
+.app-shell .review-file-copy-v80 p,.app-shell .review-external-note-v80 p,
+.app-shell .review-section-heading-v80 p,.app-shell .review-waiting-v80 p,
+.app-shell .student-revision-alert-v80 p{font-size:13px!important;line-height:1.65}
+.app-shell .review-file-meta-v80,.app-shell .review-form-actions-v80>div span{font-size:12px!important;line-height:1.5}
+.app-shell .review-decision-card-v80 strong,.app-shell .review-level-grid-v80 strong{font-size:13px!important}
+.app-shell .review-decision-card-v80 small,.app-shell .review-level-grid-v80 small,
+.app-shell .review-upload-box-v80 small{font-size:12px!important;line-height:1.5}
+
+/* Dashboard and notifications */
+.app-shell .workspace-hero-professional .workspace-kicker{font-size:11px!important}
+.app-shell .workspace-hero-professional p{font-size:16px!important;line-height:1.75}
+.app-shell .workspace-hero-professional .workspace-hero-actions .btn{font-size:14px!important}
+.app-shell .dashboard-hero-brand span{font-size:10px!important}
+.app-shell .dashboard-hero-brand strong{font-size:13px!important}
+.app-shell .dashboard-hero-brand small{font-size:11px!important}
+.app-shell .notification-summary-card span:not(.notification-summary-icon){font-size:12px!important}
+.app-shell .notification-workspace-head>div:first-child>span{font-size:13px!important}
+.app-shell .notification-filter-tabs button{font-size:13px!important}
+.app-shell .notification-type,.app-shell .notification-state{font-size:11px!important}
+.app-shell .notification-card h3{font-size:16px!important}
+.app-shell .notification-card p{font-size:14px!important;line-height:1.65}
+.app-shell .notification-card-footer span,.app-shell .notification-card-footer strong{font-size:12px!important}
+
+@media(max-width:700px){
+  .app-shell{font-size:15px;line-height:1.55}
+  .app-shell .page-header h1{font-size:clamp(27px,8vw,31px)!important}
+  .app-shell .page-header>div>p:last-child{font-size:14px!important}
+  .app-shell .panel-header h2{font-size:17px!important}
+  .app-shell .data-table{font-size:13px!important}
+  .app-shell .nav-link{font-size:14px!important}
+  .app-shell .data-table .table-action-heading,
+  .app-shell .data-table .table-action{width:124px;min-width:124px}
+  .app-shell .table-record-action{min-width:108px}
+}
