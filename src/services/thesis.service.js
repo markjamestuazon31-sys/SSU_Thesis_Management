@@ -223,7 +223,7 @@ export async function approveAndPublishThesis(adminUid, thesisId) {
 
   const allowed = [THESIS_STATUS.ADVISER_APPROVED, THESIS_STATUS.RECOMMENDED];
   if (!allowed.includes(thesis.status)) {
-    throw new Error('Only a thesis approved by its adviser can receive final administrator approval and publication.');
+    throw new Error('Only a thesis approved by its adviser can receive final administrator approval and thesis upload.');
   }
 
   const now = Date.now();

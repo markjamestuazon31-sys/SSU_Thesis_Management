@@ -25,6 +25,7 @@ function submissionTable(rows) {
     showAdviser: true,
     actionLabel: 'View record',
     actionRoute: (id) => `/admin/thesis/${id}`,
+    statusLabels: { published: 'Uploaded Thesis' },
   });
 }
 
@@ -49,7 +50,7 @@ export async function render() {
     statCard({ label: 'All Submissions', value: String(allSubmissionRows.length), iconName: 'file', helper: 'Across all courses' }),
     statCard({ label: 'With Advisers', value: String(inAdviserReview), iconName: 'review', helper: 'Currently under review' }),
     statCard({ label: 'Awaiting Admin', value: String(reviewRows.length), iconName: 'check', helper: 'Ready for final decision' }),
-    statCard({ label: 'Published', value: String(published), iconName: 'repository', helper: 'Available in repository' }),
+    statCard({ label: 'Uploaded Thesis', value: String(published), iconName: 'repository', helper: 'Available in repository' }),
   ];
 
   return `${pageHeader(
@@ -60,17 +61,18 @@ export async function render() {
   <div class="stats-grid adviser-workspace-stats">${stats.join('')}</div>
   <section class="admin-review-summary">
     <article class="admin-review-summary-card"><span class="admin-review-summary-icon">${icon('review', 20)}</span><div><span>Awaiting Admin Review</span><strong>${reviewRows.length}</strong></div></article>
-    <div class="admin-review-flow"><span>${icon('upload', 14)} Student Submission</span><i>→</i><span>${icon('check', 14)} Adviser Approval</span><i>→</i><strong>${icon('review', 14)} Admin Review</strong><i>→</i><span>${icon('repository', 14)} Publication</span></div>
+    <div class="admin-review-flow"><span>${icon('upload', 14)} Student Submission</span><i>→</i><span>${icon('check', 14)} Adviser Approval</span><i>→</i><strong>${icon('review', 14)} Admin Review</strong><i>→</i><span>${icon('repository', 14)} Uploaded Thesis</span></div>
   </section>
   <section class="panel admin-thesis-review-panel">
-    <div class="panel-header"><div><p class="eyebrow">Final Approval Queue</p><h2>Research awaiting administrator decision</h2><p>Only adviser-approved research appears here for final verification and publication.</p></div></div>
-    <div class="panel-body no-pad">${reviewRows.length ? thesisTable(reviewRows, { showOwner: true, showProgram: true, showYear: true, showAdviser: true, actionLabel: 'Final review', actionRoute: (id) => `/admin/thesis/${id}` }) : emptyState('No thesis is awaiting final review', 'Research will appear here after an adviser approves and forwards it to the administrator.')}</div>
+    <div class="panel-header"><div><p class="eyebrow">Final Approval Queue</p><h2>Research awaiting administrator decision</h2><p>Only adviser-approved research appears here for final verification and thesis upload.</p></div></div>
+    <div class="panel-body no-pad">${reviewRows.length ? thesisTable(reviewRows, { showOwner: true, showProgram: true, showYear: true, showAdviser: true, actionLabel: 'Final review', actionRoute: (id) => `/admin/thesis/${id}`, statusLabels: { published: 'Uploaded Thesis' } }) : emptyState('No thesis is awaiting final review', 'Research will appear here after an adviser approves and forwards it to the administrator.')}</div>
   </section>
   ${renderThesisFilters(allSubmissionRows, {
     prefix: FILTER_PREFIX,
     includeAdviser: true,
     heading: 'Monitor all student submissions',
     description: 'See who submitted, their course, research year, selected adviser, and current workflow status.',
+    statusLabels: { published: 'Uploaded Thesis' },
   })}
   <section class="panel research-monitor-panel">
     <div class="panel-header"><div><p class="eyebrow">Complete submission register</p><h2>All research records</h2><p>The table and CSV export follow the active filters above.</p></div><span class="research-monitor-meta" id="admin-visible-label">${allSubmissionRows.length} visible</span></div>

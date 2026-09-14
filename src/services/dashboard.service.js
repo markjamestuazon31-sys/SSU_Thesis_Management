@@ -65,7 +65,7 @@ export async function getDashboardData(profile) {
       { label: 'Total Thesis Records', value: String(theses.length), iconName: 'file' },
       { label: 'Active Users', value: String(users.filter((item) => item.status === 'active').length), iconName: 'users' },
       { label: 'Awaiting Final Approval', value: String(theses.filter((item) => ['adviser_approved', 'recommended'].includes(item.status)).length), iconName: 'review' },
-      { label: 'Published Research', value: String(published.length), iconName: 'repository' },
+      { label: 'Uploaded Thesis', value: String(published.length), iconName: 'repository' },
     ],
     theses,
     recent: theses.slice(0, 5),

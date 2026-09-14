@@ -18,9 +18,9 @@ function optionList(values) {
   return values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
 }
 
-function statusOptions(rows) {
+function statusOptions(rows, statusLabels = {}) {
   return uniqueValues(rows, (row) => String(row.status || ''))
-    .map((status) => `<option value="${escapeHtml(status)}">${escapeHtml(titleCase(status))}</option>`)
+    .map((status) => `<option value="${escapeHtml(status)}">${escapeHtml(statusLabels[status] || titleCase(status))}</option>`)
     .join('');
 }
 
@@ -42,6 +42,7 @@ export function renderThesisFilters(rows, {
   includePriority = false,
   heading = 'Filter research records',
   description = 'Search and narrow records by course, research year, and workflow status.',
+  statusLabels = {},
 } = {}) {
   const programs = uniqueValues(rows, (row) => String(row.program || ''));
   const years = uniqueValues(rows, (row) => row.year ? String(row.year) : '', (a, b) => Number(b) - Number(a));
@@ -55,7 +56,7 @@ export function renderThesisFilters(rows, {
       <label class="field research-filter-search"><span>Search</span><input id="${prefix}-search" type="search" placeholder="Title, student, researcher, keyword..." autocomplete="off"></label>
       <label class="field"><span>Course / Program</span><select id="${prefix}-program"><option value="">All courses</option>${optionList(programs)}</select></label>
       <label class="field"><span>Research Year</span><select id="${prefix}-year"><option value="">All years</option>${optionList(years)}</select></label>
-      <label class="field"><span>Status</span><select id="${prefix}-status"><option value="">All statuses</option>${statusOptions(rows)}</select></label>
+      <label class="field"><span>Status</span><select id="${prefix}-status"><option value="">All statuses</option>${statusOptions(rows, statusLabels)}</select></label>
       ${includeAdviser ? `<label class="field"><span>Adviser</span><select id="${prefix}-adviser"><option value="">All advisers</option>${adviserOptions(rows)}</select></label>` : ''}
       ${includePriority ? `<label class="field"><span>Review Priority</span><select id="${prefix}-priority"><option value="">All assigned research</option><option value="needs_review">Needs my review</option><option value="revision_pending">Student revision pending</option><option value="completed">Review completed</option></select></label>` : ''}
       <button class="btn btn-secondary research-filter-clear" id="${prefix}-clear" type="button">Clear filters</button>

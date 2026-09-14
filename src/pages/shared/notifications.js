@@ -10,11 +10,11 @@ import { relativeTime } from '../../utils/date.js';
 import { toast } from '../../components/toast.js';
 import '../../styles/notifications-v71.css';
 
-function notificationVisual(item = {}) {
+function notificationVisual(item = {}, role = '') {
   const haystack = `${item.type || ''} ${item.title || ''} ${item.message || ''}`.toLowerCase();
 
   if (haystack.includes('publish')) {
-    return { icon: 'repository', tone: 'published', label: 'Publication' };
+    return { icon: 'repository', tone: 'published', label: role === 'admin' ? 'Uploaded Thesis' : 'Publication' };
   }
 
   if (haystack.includes('approve') || haystack.includes('approval')) {
@@ -32,8 +32,21 @@ function notificationVisual(item = {}) {
   return { icon: 'bell', tone: 'info', label: 'Notification' };
 }
 
-function notificationCard(item) {
-  const visual = notificationVisual(item);
+
+function displayNotificationText(value = '', role = '') {
+  if (role !== 'admin') return String(value || '');
+  return String(value || '')
+    .replace(/\bPublished Research\b/g, 'Uploaded Thesis')
+    .replace(/\bpublished research\b/g, 'uploaded thesis')
+    .replace(/\bResearch published\b/g, 'Thesis uploaded')
+    .replace(/\bresearch published\b/g, 'thesis uploaded')
+    .replace(/\bpublication\b/gi, 'thesis upload')
+    .replace(/\bpublished\b/gi, 'uploaded')
+    .replace(/\bpublish\b/gi, 'upload');
+}
+
+function notificationCard(item, role) {
+  const visual = notificationVisual(item, role);
   const route = item.route || '/dashboard';
 
   return `
@@ -55,8 +68,8 @@ function notificationCard(item) {
               : '<span class="notification-state unread-state"><i></i> New</span>'}
           </div>
 
-          <h3>${escapeHtml(item.title || 'Notification')}</h3>
-          <p>${escapeHtml(item.message || '')}</p>
+          <h3>${escapeHtml(displayNotificationText(item.title || 'Notification', role))}</h3>
+          <p>${escapeHtml(displayNotificationText(item.message || '', role))}</p>
 
           <div class="notification-card-footer">
             <span>${icon('clock', 14)} ${escapeHtml(relativeTime(item.createdAt))}</span>
@@ -80,7 +93,7 @@ export async function render({ profile }) {
     <div class="notification-page">
       ${pageHeader(
         'Notifications',
-        'Stay updated on thesis reviews, adviser decisions, final approvals, and repository publication.',
+        profile.role === 'admin' ? 'Stay updated on thesis reviews, adviser decisions, final approvals, and thesis uploads.' : 'Stay updated on thesis reviews, adviser decisions, final approvals, and repository publication.',
         actions
       )}
 
@@ -127,10 +140,10 @@ export async function render({ profile }) {
 
         <div class="notification-card-list" id="notification-list">
           ${items.length
-            ? items.map(notificationCard).join('')
+            ? items.map((item) => notificationCard(item, profile.role)).join('')
             : emptyState(
                 'No notifications yet',
-                'Workflow alerts, review decisions, and publication updates will appear here.'
+                profile.role === 'admin' ? 'Workflow alerts, review decisions, and thesis upload updates will appear here.' : 'Workflow alerts, review decisions, and publication updates will appear here.'
               )}
         </div>
 

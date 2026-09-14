@@ -72,11 +72,11 @@ export async function render({ profile }) {
   )}
 
     <div class="pro-submit-shell">
-      <ol class="pro-submit-steps" aria-label="Thesis publication workflow">
+      <ol class="pro-submit-steps" aria-label="Thesis submission workflow">
         <li class="active"><span>1</span><div><strong>Student Submission</strong><small>Research metadata and manuscript</small></div></li>
         <li><span>2</span><div><strong>Adviser Review</strong><small>Review, revision, or approval</small></div></li>
         <li><span>3</span><div><strong>Admin Approval</strong><small>Final institutional review</small></div></li>
-        <li><span>4</span><div><strong>Published</strong><small>Visible in the public repository</small></div></li>
+        <li><span>4</span><div><strong>Upload Thesis</strong><small>Final approved manuscript record</small></div></li>
       </ol>
 
       <form id="submit-form" class="pro-submit-form" novalidate>

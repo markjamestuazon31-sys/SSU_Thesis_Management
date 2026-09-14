@@ -10,6 +10,7 @@ export async function render({ profile }) {
   const data = await getDashboardData(profile);
   const firstName = profile.displayName?.split(' ')[0] || 'User';
   const roleText = profile.role === 'admin' ? 'Administrator' : profile.role === 'adviser' ? 'Thesis Adviser' : 'Student Researcher';
+  const adminMode = profile.role === 'admin';
 
   return `<section class="workspace-hero workspace-hero-professional">
     <div class="dashboard-hero-content-pro">
@@ -39,7 +40,7 @@ export async function render({ profile }) {
   <div class="dashboard-grid executive-grid">
     <section class="panel workflow-overview-panel">
       <div class="panel-header">
-        <div><h2>Workflow monitoring</h2><p>Current thesis progress across the review and publication process.</p></div>
+        <div><h2>Workflow monitoring</h2><p>${adminMode ? 'Current thesis progress across the review and thesis upload process.' : 'Current thesis progress across the review and publication process.'}</p></div>
         <a class="text-link" href="#${workflowRoute(profile.role)}">Open workflow ${icon('arrow', 15)}</a>
       </div>
       <div class="panel-body" id="live-workflow">${workflowSummary(data.theses, profile.role)}</div>
@@ -52,7 +53,7 @@ export async function render({ profile }) {
         <div class="notice-box live-notification-box">
           <div class="notice-icon">${icon('bell', 18)}</div>
           <div><strong><span id="live-unread">${data.unread}</span> unread notification${data.unread === 1 ? '' : 's'}</strong>
-          <p>Workflow alerts, adviser feedback, and publication updates.</p>
+          <p>${adminMode ? 'Workflow alerts, adviser feedback, and thesis upload updates.' : 'Workflow alerts, adviser feedback, and publication updates.'}</p>
           <a class="text-link" href="#/notifications">Open notifications →</a></div>
         </div>
       </div>
@@ -71,19 +72,19 @@ export async function render({ profile }) {
     <div class="panel-header dashboard-library-header">
       <div>
         <p class="eyebrow">Centralized repository</p>
-        <h2>Published Research Library</h2>
-        <p>Search approved and published CAS research records from one institutional repository.</p>
+        <h2>${adminMode ? 'Uploaded Thesis Library' : 'Published Research Library'}</h2>
+        <p>${adminMode ? 'Search approved and uploaded CAS thesis records from one institutional repository.' : 'Search approved and published CAS research records from one institutional repository.'}</p>
       </div>
       <div class="dashboard-library-tools">
         <div class="dashboard-research-search">
           ${icon('search', 17)}
           <input id="dashboard-research-search" type="search" placeholder="Search title, author, program, keyword..." autocomplete="off">
         </div>
-        <span class="research-count"><strong id="dashboard-research-count">${data.published.length}</strong> published</span>
+        <span class="research-count"><strong id="dashboard-research-count">${data.published.length}</strong> ${adminMode ? 'uploaded thesis' : 'published'}</span>
       </div>
     </div>
     <div class="panel-body">
-      <div class="dashboard-research-grid" id="dashboard-research-grid">${publishedCards(data.published)}</div>
+      <div class="dashboard-research-grid" id="dashboard-research-grid">${publishedCards(data.published, profile.role)}</div>
     </div>
   </section>
 `;
@@ -105,6 +106,7 @@ function recentTable(rows, profile) {
   return thesisTable(rows, {
     showOwner: profile.role !== 'student',
     showAdviser: profile.role === 'admin',
+    statusLabels: profile.role === 'admin' ? { published: 'Uploaded Thesis' } : {},
     actionRoute: (id) => profile.role === 'student'
       ? `/student/thesis/${id}`
       : profile.role === 'adviser'
@@ -119,7 +121,7 @@ function workflowSummary(theses = [], role) {
         ['In review', ['submitted', 'under_review'], 'review'],
         ['Revision required', ['revision_required'], 'clock'],
         ['Awaiting admin approval', ['adviser_approved', 'recommended'], 'check'],
-        ['Published', ['published'], 'repository'],
+        ['Uploaded Thesis', ['published'], 'repository'],
       ]
     : [
         ['In review', ['submitted', 'under_review'], 'review'],
@@ -140,12 +142,13 @@ function workflowSummary(theses = [], role) {
   }).join('')}</div>`;
 }
 
-function publishedCards(rows) {
+function publishedCards(rows, role) {
   if (!rows.length) {
+    const adminMode = role === 'admin';
     return `<div class="empty-state wide">
       <div class="empty-icon">${icon('repository', 30)}</div>
-      <h3>No published research yet</h3>
-      <p>Approved research will automatically appear here after publication by the administrator.</p>
+      <h3>${adminMode ? 'No uploaded thesis yet' : 'No published research yet'}</h3>
+      <p>${adminMode ? 'Approved theses will automatically appear here after the administrator uploads them to the repository.' : 'Approved research will automatically appear here after publication by the administrator.'}</p>
     </div>`;
   }
 
@@ -186,7 +189,7 @@ function quick(role) {
       <a class="quick-action" href="#/adviser/history"><span class="quick-action-icon">${icon('clock', 18)}</span><div><strong>Review history</strong><span>See previous decisions and comments.</span></div>${icon('arrow', 16)}</a>
       <a class="quick-action" href="#/repository"><span class="quick-action-icon">${icon('repository', 18)}</span><div><strong>Research repository</strong><span>Search all published CAS research.</span></div>${icon('arrow', 16)}</a>`;
   }
-  return `<a class="quick-action" href="#/admin/workflow"><span class="quick-action-icon">${icon('review', 18)}</span><div><strong>Manage workflow</strong><span>Final-approve adviser-reviewed research and publish it.</span></div>${icon('arrow', 16)}</a>
+  return `<a class="quick-action" href="#/admin/workflow"><span class="quick-action-icon">${icon('review', 18)}</span><div><strong>Manage workflow</strong><span>Final-approve adviser-reviewed research and upload the thesis.</span></div>${icon('arrow', 16)}</a>
     <a class="quick-action" href="#/admin/users"><span class="quick-action-icon">${icon('users', 18)}</span><div><strong>Manage users</strong><span>Create adviser accounts and control access.</span></div>${icon('arrow', 16)}</a>
     <a class="quick-action" href="#/admin/reports"><span class="quick-action-icon">${icon('chart', 18)}</span><div><strong>Reports & analytics</strong><span>View live status and program statistics.</span></div>${icon('arrow', 16)}</a>`;
 }
@@ -217,7 +220,7 @@ function updateDashboard(data, profile) {
   const unread = document.getElementById('live-unread');
   if (unread) unread.textContent = String(data.unread);
   const grid = document.getElementById('dashboard-research-grid');
-  if (grid) grid.innerHTML = publishedCards(data.published);
+  if (grid) grid.innerHTML = publishedCards(data.published, profile.role);
   const count = document.getElementById('dashboard-research-count');
   if (count) count.textContent = String(data.published.length);
 }

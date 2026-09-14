@@ -80,3 +80,59 @@ export async function setUserStatus(adminUid, uid, status) {
   await updateRoot(updates);
   await logAudit(adminUid, 'user_status_changed', { uid, status: normalized }).catch(() => {});
 }
+
+const TERMINAL_THESIS_STATUSES = new Set(['published', 'archived', 'rejected']);
+
+/**
+ * Removes a student/adviser account from the portal data while preserving
+ * completed institutional thesis records. Because this frontend package uses
+ * the Firebase client SDK, it cannot delete another user's Firebase Auth
+ * identity. A Firebase Admin SDK backend/Cloud Function is required for that
+ * final Auth deletion step.
+ */
+export async function deleteUserAccount(adminUid, uid) {
+  if (!adminUid) throw new Error('Administrator session is required.');
+  if (!uid) throw new Error('Select an account to delete.');
+  if (uid === PRIMARY_ADMIN.uid) throw new Error('The primary administrator account is protected and cannot be deleted.');
+  if (adminUid === uid) throw new Error('You cannot delete your own administrator account.');
+
+  const target = await getUser(uid);
+  if (!target) throw new Error('User account not found.');
+  if (target.role === 'admin') throw new Error('Administrator accounts cannot be deleted from this page.');
+
+  const theses = await getCollection('theses');
+  const linked = theses.filter((thesis) => (
+    target.role === 'student' ? thesis.ownerUid === uid : thesis.adviserUid === uid
+  ));
+  const activeLinked = linked.filter((thesis) => !TERMINAL_THESIS_STATUSES.has(String(thesis.status || '')));
+
+  if (activeLinked.length) {
+    const label = target.role === 'student' ? 'student' : 'adviser';
+    throw new Error(`This ${label} still has ${activeLinked.length} active thesis record${activeLinked.length === 1 ? '' : 's'}. Complete, reject, or archive the linked record first, or disable the account instead.`);
+  }
+
+  const updates = {
+    [`users/${uid}`]: null,
+    [`profilePhotos/${uid}`]: null,
+    [`notifications/${uid}`]: null,
+  };
+
+  if (target.role === 'adviser') {
+    updates[`adviserDirectory/${uid}`] = null;
+  }
+
+  if (target.role === 'student' && target.researchYear && target.researchRegistrationKey) {
+    updates[`researchRegistrationClaims/${target.researchYear}/${target.researchRegistrationKey}`] = null;
+  }
+
+  await updateRoot(updates);
+  await logAudit(adminUid, 'user_account_deleted_from_portal', {
+    uid,
+    role: target.role,
+    email: target.email || '',
+    preservedThesisRecords: linked.length,
+  }).catch(() => {});
+
+  return target;
+}
+

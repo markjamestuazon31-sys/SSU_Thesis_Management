@@ -46,7 +46,7 @@ function table(rows) {
               </td>
               <td>${escapeHtml(item.authors || item.studentName || item.ownerName || '—')}</td>
               <td>${escapeHtml(item.adviserName || '—')}</td>
-              <td>${statusBadge(item.status)}</td>
+              <td>${statusBadge(item.status, item.status === 'published' ? 'Uploaded Thesis' : '')}</td>
               <td>${formatDate(approvedDate(item))}</td>
               <td class="table-action">
                 <a class="table-record-action" href="#/admin/thesis/${item.id}">
@@ -71,7 +71,7 @@ export async function render() {
   return `
     ${pageHeader(
       'Approved Thesis Records',
-      'Final administrator-approved research records, including thesis records already published in the institutional repository.'
+      'Final administrator-approved research records, including thesis records already uploaded to the institutional repository.'
     )}
 
     <section class="approved-summary-grid">
@@ -82,7 +82,7 @@ export async function render() {
 
       <article class="approved-summary-card">
         <span class="approved-summary-icon tone-green">${icon('repository', 21)}</span>
-        <div><span>Published</span><strong>${published}</strong></div>
+        <div><span>Uploaded Thesis</span><strong>${published}</strong></div>
       </article>
 
       <article class="approved-summary-card">

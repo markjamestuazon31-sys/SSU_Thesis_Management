@@ -1,0 +1,46 @@
+/* User Management directory and filters v8.3 */
+.user-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.user-summary-card{position:relative;overflow:hidden;display:grid;gap:5px;padding:18px 19px;border:1px solid #dce5ed;border-radius:14px;background:#fff;box-shadow:0 8px 20px rgba(26,53,78,.045)}
+.user-summary-card:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:#7891a5}
+.user-summary-card.student:before{background:#2b6f9f}.user-summary-card.adviser:before{background:#6b4cb1}.user-summary-card.active:before{background:#18825f}
+.user-summary-card>span{font-size:10px;font-weight:850;letter-spacing:.075em;text-transform:uppercase;color:#738496}
+.user-summary-card>strong{font-size:28px;line-height:1;color:#173b5a;letter-spacing:-.03em}
+.user-summary-card>small{font-size:10px;color:#8796a4}
+.user-directory-panel{background:#fff}
+.user-directory-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+.user-directory-heading>div:first-child{min-width:0}
+.user-directory-heading .eyebrow{margin-bottom:4px}
+.user-directory-heading h2{margin:0 0 5px;font-size:18px}
+.user-directory-heading p:last-child{max-width:760px;margin:0;color:#6f8293;font-size:11px;line-height:1.55}
+.user-result-count{display:flex;align-items:baseline;gap:6px;flex:0 0 auto;padding:9px 12px;border:1px solid #d5e1ea;border-radius:10px;background:#f7fafc;color:#698093}
+.user-result-count strong{font-size:20px;color:#0a4d81}.user-result-count span{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.user-filter-body{padding-top:16px;padding-bottom:16px;background:linear-gradient(180deg,#fff,#fbfdff)}
+.user-filter-grid{display:grid;grid-template-columns:minmax(280px,1.5fr) minmax(170px,.7fr) minmax(150px,.6fr) auto;align-items:end;gap:13px}
+.user-filter-grid .field input,.user-filter-grid .field select{min-height:43px;background:#fff}
+.user-filter-clear{min-height:43px;white-space:nowrap}
+.user-table-area{border-top:1px solid #e8eef3}
+.user-directory-table{min-width:1050px}
+.user-directory-table th:last-child,.user-directory-table td:last-child{text-align:right}
+.user-directory-table tbody tr[hidden]{display:none}
+.user-identity-cell{display:flex;align-items:center;gap:11px;min-width:220px}
+.user-identity-cell>div:last-child{min-width:0}
+.user-avatar-placeholder{width:36px;height:36px;flex:0 0 36px;border-radius:10px;display:grid;place-items:center;background:#edf4f9;border:1px solid #dce7ef;color:#1d5e8d;font-size:13px;font-weight:900}
+.user-id-value{font-weight:800;color:#2b465e;white-space:nowrap}
+.user-directory-table .table-title{max-width:410px;overflow-wrap:anywhere}
+.user-filter-empty{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;color:#7b8d9d}
+.user-filter-empty[hidden]{display:none}
+.user-filter-empty strong{font-size:14px;color:#294b66;margin-bottom:5px}.user-filter-empty span{font-size:11px}
+@media(max-width:1150px){.user-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.user-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.user-filter-search{grid-column:1/-1}.user-filter-clear{width:100%}}
+@media(max-width:720px){.user-summary-grid{grid-template-columns:1fr 1fr}.user-directory-heading{align-items:stretch;flex-direction:column}.user-result-count{align-self:flex-start}.user-filter-grid{grid-template-columns:1fr}.user-filter-search{grid-column:auto}.user-filter-clear{width:100%}}
+@media(max-width:460px){.user-summary-grid{grid-template-columns:1fr}.user-summary-card{padding:15px 16px}}
+
+/* Account actions and guarded deletion */
+.user-account-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap}
+.user-delete-warning{border-color:#f1c8c4;background:#fff6f5;color:#7f241e}
+.user-delete-warning p{margin:6px 0 0;color:#76504c;line-height:1.5}
+.user-delete-auth-note{display:grid;gap:4px;padding:12px 13px;border:1px solid #dce5ed;border-radius:10px;background:#f8fbfd}
+.user-delete-auth-note strong{font-size:11px;color:#294b66}
+.user-delete-auth-note span{font-size:10px;line-height:1.5;color:#6f8293}
+.user-delete-actions{padding:4px 0 0;border-top:0}
+@media(max-width:720px){.user-account-actions{align-items:stretch;flex-direction:column}.user-account-actions .btn{width:100%}}
+

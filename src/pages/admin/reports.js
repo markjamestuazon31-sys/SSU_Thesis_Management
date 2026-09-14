@@ -34,6 +34,7 @@ function optionList(values, labeler = (value) => value) {
 }
 
 function statusLabel(status) {
+  if (status === 'published') return 'Uploaded Thesis';
   return STATUS_LABELS[status] || titleCase(status || 'unspecified');
 }
 
@@ -123,7 +124,7 @@ function filteredThesisTable(theses) {
         <td>${escapeHtml(thesis.program || 'Not specified')}</td>
         <td>${escapeHtml(thesis.year || '—')}</td>
         <td>${escapeHtml(thesis.adviserName || 'Unassigned')}</td>
-        <td>${statusBadge(thesis.status || 'unspecified')}</td>
+        <td>${statusBadge(thesis.status || 'unspecified', statusLabel(thesis.status || 'unspecified'))}</td>
       </tr>`).join('')}</tbody>
     </table>
   </div>`;
@@ -134,8 +135,8 @@ function reportSummaryCards(theses) {
   const cards = [
     { label: 'Records displayed', value: theses.length, iconName: 'file', tone: 'blue' },
     { label: 'Active review', value: summary.activeWorkflow, iconName: 'clock', tone: 'amber' },
-    { label: 'Published', value: summary.published, iconName: 'check', tone: 'green' },
-    { label: 'Publication rate', value: `${summary.publicationRate}%`, iconName: 'chart', tone: 'blue' },
+    { label: 'Uploaded Thesis', value: summary.published, iconName: 'check', tone: 'green' },
+    { label: 'Uploaded Thesis Rate', value: `${summary.publicationRate}%`, iconName: 'chart', tone: 'blue' },
   ];
   return cards.map((card) => `<article class="report-kpi-card report-kpi-card--${card.tone}"><div class="report-kpi-icon">${icon(card.iconName, 22)}</div><div><span>${escapeHtml(card.label)}</span><strong>${escapeHtml(String(card.value))}</strong></div></article>`).join('');
 }
@@ -269,9 +270,9 @@ function buildPrintDocument(theses, filters) {
       <div><strong>${theses.length}</strong><span>Total Records</span></div>
       <div><strong>${summary.activeWorkflow}</strong><span>Active Workflow</span></div>
       <div><strong>${summary.approved}</strong><span>Admin Approved</span></div>
-      <div><strong>${summary.published}</strong><span>Published</span></div>
+      <div><strong>${summary.published}</strong><span>Uploaded Thesis</span></div>
       <div><strong>${summary.rejected}</strong><span>Rejected</span></div>
-      <div><strong>${summary.publicationRate}%</strong><span>Publication Rate</span></div>
+      <div><strong>${summary.publicationRate}%</strong><span>Uploaded Thesis Rate</span></div>
     </section>
     <table><thead><tr><th class="num">No.</th><th class="title">Research Title</th><th class="researcher">Student / Researchers</th><th class="program">Course / Program</th><th class="year">Research Year</th><th class="academic">Academic Year</th><th class="adviser">Adviser</th><th class="status">Status</th></tr></thead><tbody>
       ${theses.map((thesis, index) => `<tr><td class="num">${index + 1}</td><td>${escapeHtml(thesis.title || 'Untitled Thesis')}</td><td>${escapeHtml(thesis.authors || thesis.studentName || thesis.ownerName || '—')}</td><td>${escapeHtml(thesis.program || 'Not specified')}</td><td>${escapeHtml(thesis.year || '—')}</td><td>${escapeHtml(thesis.academicYear || '—')}</td><td>${escapeHtml(thesis.adviserName || 'Unassigned')}</td><td>${escapeHtml(statusLabel(thesis.status))}</td></tr>`).join('')}

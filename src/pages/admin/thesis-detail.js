@@ -37,7 +37,7 @@ export async function render({ params }) {
   const awaitingAdmin = ['adviser_approved', 'recommended'].includes(thesis.status);
 
   let actions = `<button class="btn btn-secondary" type="button" data-file-download="${escapeHtml(thesis.currentFileId || '')}" ${currentFile?.status === 'ready' ? '' : 'disabled'}>${icon('download')} Download Student Manuscript</button>`;
-  if (awaitingAdmin) actions += `<button class="btn btn-primary" id="approve-publish">${icon('check', 16)} Approve & Publish</button>`;
+  if (awaitingAdmin) actions += `<button class="btn btn-primary" id="approve-publish">${icon('check', 16)} Approve & Upload Thesis</button>`;
   if (thesis.status !== 'archived') actions += '<button class="btn btn-danger" id="archive-thesis">Archive</button>';
 
   const finalReview = reviews.find((review) => ['adviser_approved', 'recommended'].includes(review.decision));
@@ -49,11 +49,11 @@ export async function render({ params }) {
   )}
   ${awaitingAdmin ? `<div class="notice-box success" style="margin-bottom:18px">
     <strong>Ready for final administrator approval</strong>
-    <p>The adviser approved Version ${escapeHtml(String(finalReview?.sourceVersion || thesis.version || 1))}. Review the student manuscript and the adviser decision below, then use <strong>Approve & Publish</strong>.</p>
+    <p>The adviser approved Version ${escapeHtml(String(finalReview?.sourceVersion || thesis.version || 1))}. Review the student manuscript and the adviser decision below, then use <strong>Approve & Upload Thesis</strong>.</p>
   </div>` : ''}
   <div class="detail-grid">
     <section class="panel">
-      <div class="panel-header"><div><h2>Research record</h2>${statusBadge(thesis.status)}</div></div>
+      <div class="panel-header"><div><h2>Research record</h2>${statusBadge(thesis.status, thesis.status === 'published' ? 'Uploaded Thesis' : '')}</div></div>
       <div class="panel-body">
         <div class="info-list">
           ${infoRow('Student', thesis.studentName)}
@@ -94,14 +94,14 @@ export function mount({ profile, params }) {
   const cleanupDownloads = bindRealtimeFileDownloads();
 
   const approve = async () => {
-    const confirmed = window.confirm('Approve this adviser-reviewed research and publish it to the SSU Research Repository?');
+    const confirmed = window.confirm('Approve this adviser-reviewed research and upload the thesis to the SSU Research Repository?');
     if (!confirmed) return;
     try {
       await approveAndPublishThesis(profile.uid, params.id);
-      toast('Research approved and published successfully.', 'success');
+      toast('Research approved and uploaded successfully.', 'success');
       location.hash = `#/admin/thesis/${params.id}?refresh=${Date.now()}`;
     } catch (error) {
-      toast(error?.message || 'Unable to approve and publish this research.', 'error');
+      toast(error?.message || 'Unable to approve and upload this thesis.', 'error');
     }
   };
 

@@ -264,7 +264,7 @@ export async function submitReview(
 
       await createNotification(PRIMARY_ADMIN.uid, {
         title: 'Thesis awaiting final approval',
-        message: `${profile.displayName} approved “${thesis.title}”. Review the record for final approval and publication.`,
+        message: `${profile.displayName} approved “${thesis.title}”. Review the record for final approval and thesis upload.`,
         type: 'approval',
         route: `/admin/thesis/${thesisId}`,
         actorUid: profile.uid,
