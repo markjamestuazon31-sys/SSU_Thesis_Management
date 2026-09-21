@@ -13,27 +13,29 @@ import {
 } from './file.service.js';
 import { createNotification } from './notification.service.js';
 import { getAssignedTheses, getThesis } from './thesis.service.js';
+import { getProgramChairForProgram } from './user.service.js';
 import { logAudit } from './audit.service.js';
 
-const FINAL_DECISIONS = new Set(['revision_required', 'adviser_approved']);
+const FINAL_DECISIONS = new Set(['revision_required', 'instructor_approved', 'adviser_approved']);
 const DRAFT_DECISIONS = new Set(['undecided', ...FINAL_DECISIONS]);
 const REVISION_LEVELS = new Set(['minor', 'major']);
 
 const decisionMap = {
   revision_required: THESIS_STATUS.REVISION_REQUIRED,
-  adviser_approved: THESIS_STATUS.ADVISER_APPROVED,
+  instructor_approved: THESIS_STATUS.INSTRUCTOR_APPROVED,
 };
 
 function normalizeComment(value, { required = true } = {}) {
   const text = String(value || '').replace(/\r\n/g, '\n').trim().slice(0, 5000);
   if (required && text.length < 5) {
-    throw new Error('Provide specific adviser feedback before submitting the decision.');
+    throw new Error('Provide specific Research Instructor feedback before submitting the decision.');
   }
   return text;
 }
 
 function normalizeDecision(value, { allowUndecided = false } = {}) {
-  const decision = String(value || '').trim() || (allowUndecided ? 'undecided' : '');
+  let decision = String(value || '').trim() || (allowUndecided ? 'undecided' : '');
+  if (decision === 'adviser_approved') decision = 'instructor_approved';
   const allowed = allowUndecided ? DRAFT_DECISIONS : FINAL_DECISIONS;
   if (!allowed.has(decision)) {
     throw new Error(allowUndecided ? 'Select a valid review option.' : 'Select Approve or Request Revision.');
@@ -48,14 +50,18 @@ function normalizeRevisionLevel(value, { required = false } = {}) {
   return level;
 }
 
+function thesisInstructorUid(thesis) {
+  return String(thesis?.researchInstructorUid || thesis?.adviserUid || '');
+}
+
 async function requireOpenReview(profile, thesisId) {
   const thesis = await getThesis(thesisId);
   if (!thesis) throw new Error('Thesis not found.');
-  if (!profile?.uid || thesis.adviserUid !== profile.uid) {
-    throw new Error('This thesis was submitted to a different adviser.');
+  if (!profile?.uid || thesisInstructorUid(thesis) !== profile.uid) {
+    throw new Error('This thesis was submitted to a different Research Instructor.');
   }
   if (![THESIS_STATUS.SUBMITTED, THESIS_STATUS.UNDER_REVIEW].includes(thesis.status)) {
-    throw new Error('This thesis is not currently open for adviser review.');
+    throw new Error('This thesis is not currently open for Research Instructor review.');
   }
   if (!String(thesis.currentFileId || '').trim()) {
     throw new Error('This thesis does not have a current student manuscript file.');
@@ -69,7 +75,7 @@ async function verifyReviewedFile(fileId, profile, thesis) {
     throw new Error('The saved reviewed manuscript is missing or incomplete. Upload it again.');
   }
   if (metadata.ownerUid !== profile.uid || metadata.thesisId !== thesis.id) {
-    throw new Error('The reviewed manuscript is not linked to this adviser and thesis.');
+    throw new Error('The reviewed manuscript is not linked to this Research Instructor and thesis.');
   }
   return metadata;
 }
@@ -79,15 +85,18 @@ async function uploadReviewedCopy(profile, thesis, file, onProgress = () => {}) 
     ownerUid: profile.uid,
     thesisId: thesis.id,
     onProgress,
+    // Legacy purpose value is retained because file rules/checks and existing
+    // stored files use it. The visible UI calls this a Research Instructor copy.
     purpose: 'adviser_reviewed_manuscript',
     sourceFileId: thesis.currentFileId,
     sourceVersion: Number(thesis.version || 1),
   });
 }
 
-export async function getReviewDraft(thesisId, adviserUid) {
+export async function getReviewDraft(thesisId, researchInstructorUid) {
   const draft = await getValue(`reviewDrafts/${thesisId}`);
-  if (!draft || draft.adviserUid !== adviserUid) return null;
+  const savedUid = draft?.researchInstructorUid || draft?.adviserUid;
+  if (!draft || savedUid !== researchInstructorUid) return null;
   return { thesisId, ...draft };
 }
 
@@ -122,9 +131,12 @@ export async function saveReviewDraft(
     }
 
     const now = Date.now();
+    const instructorName = profile.displayName || 'Research Instructor';
     const record = {
+      researchInstructorUid: profile.uid,
+      researchInstructorName: instructorName,
       adviserUid: profile.uid,
-      adviserName: profile.displayName || 'Thesis Adviser',
+      adviserName: instructorName,
       decision: normalizedDecision,
       comment: text,
       revisionLevel: level,
@@ -156,7 +168,7 @@ export async function saveReviewDraft(
 
 export async function discardReviewDraft(profile, thesisId) {
   const thesis = await getThesis(thesisId);
-  if (!thesis || thesis.adviserUid !== profile?.uid) throw new Error('Review draft not available.');
+  if (!thesis || thesisInstructorUid(thesis) !== profile?.uid) throw new Error('Review draft not available.');
   const draft = await getReviewDraft(thesisId, profile.uid);
   if (!draft) return;
   await removeValue(`reviewDrafts/${thesisId}`);
@@ -183,9 +195,6 @@ export async function submitReview(
     : '';
   const draft = await getReviewDraft(thesisId, profile.uid);
 
-  // A draft is only reusable for the exact student version that is currently
-  // under review. This prevents a reviewed copy for an older version from
-  // being accidentally sent with a newer submission.
   const draftMatchesCurrent = Boolean(
     draft
     && draft.sourceFileId === thesis.currentFileId
@@ -209,11 +218,17 @@ export async function submitReview(
       }
     }
 
+    const chair = normalizedDecision === 'instructor_approved'
+      ? await getProgramChairForProgram(thesis.program).catch(() => null)
+      : null;
     const reviewId = createKey(`reviews/${thesisId}`);
     const now = Date.now();
+    const instructorName = profile.displayName || 'Research Instructor';
     const reviewRecord = {
+      researchInstructorUid: profile.uid,
+      researchInstructorName: instructorName,
       adviserUid: profile.uid,
-      adviserName: profile.displayName || 'Thesis Adviser',
+      adviserName: instructorName,
       decision: normalizedDecision,
       comment: text,
       sourceFileId: thesis.currentFileId,
@@ -232,12 +247,17 @@ export async function submitReview(
       [`theses/${thesisId}/lastReviewedAt`]: now,
       [`reviewDrafts/${thesisId}`]: null,
     };
-    if (normalizedDecision === 'adviser_approved') {
+
+    if (normalizedDecision === 'instructor_approved') {
+      updates[`theses/${thesisId}/researchInstructorApprovedAt`] = now;
       updates[`theses/${thesisId}/adviserApprovedAt`] = now;
+      updates[`theses/${thesisId}/programChairMonitoringAt`] = now;
+      if (chair) {
+        updates[`theses/${thesisId}/programChairUid`] = chair.id;
+        updates[`theses/${thesisId}/programChairName`] = chair.displayName || 'Program Chair';
+      }
     }
 
-    // The final review record, thesis status, and draft removal are committed
-    // in one Realtime Database multi-location update.
     await updateRoot(updates);
     committed = true;
 
@@ -248,36 +268,47 @@ export async function submitReview(
     if (normalizedDecision === 'revision_required') {
       await createNotification(thesis.ownerUid, {
         title: `${level === 'major' ? 'Major' : 'Minor'} revision requested`,
-        message: `${profile.displayName} reviewed version ${reviewRecord.sourceVersion} of “${thesis.title}”. Download the reviewed manuscript, apply the comments, then submit your revised version.`,
+        message: `${instructorName} reviewed version ${reviewRecord.sourceVersion} of “${thesis.title}”. Download the reviewed manuscript, apply the comments, then submit your revised version.`,
         type: 'review',
         route: `/student/thesis/${thesisId}`,
         actorUid: profile.uid,
       }).catch(() => {});
     } else {
       await createNotification(thesis.ownerUid, {
-        title: 'Approved by adviser',
-        message: `${profile.displayName} approved version ${reviewRecord.sourceVersion} of “${thesis.title}”. It has been forwarded to the administrator for final approval and publication.`,
+        title: 'Approved by Research Instructor',
+        message: `${instructorName} approved version ${reviewRecord.sourceVersion} of “${thesis.title}”. It is now visible to your Program Chair for monitoring and is awaiting final administrator approval.`,
         type: 'review',
         route: `/student/thesis/${thesisId}`,
         actorUid: profile.uid,
       }).catch(() => {});
 
+      if (chair?.id) {
+        await createNotification(chair.id, {
+          title: 'Research routed for Program Chair monitoring',
+          message: `${instructorName} approved “${thesis.title}” from ${thesis.program}. This record is for monitoring only; final approval belongs to the administrator.`,
+          type: 'approval',
+          route: `/program-chair/research/${thesisId}`,
+          actorUid: profile.uid,
+        }).catch(() => {});
+      }
+
       await createNotification(PRIMARY_ADMIN.uid, {
-        title: 'Thesis awaiting final approval',
-        message: `${profile.displayName} approved “${thesis.title}”. Review the record for final approval and thesis upload.`,
+        title: 'Research awaiting final approval',
+        message: `${instructorName} approved “${thesis.title}”. Review the record for final administrator approval and thesis upload.`,
         type: 'approval',
         route: `/admin/thesis/${thesisId}`,
         actorUid: profile.uid,
       }).catch(() => {});
     }
 
-    await logAudit(profile.uid, 'review_submitted', {
+    await logAudit(profile.uid, 'research_instructor_review_submitted', {
       thesisId,
       reviewId,
       decision: normalizedDecision,
       sourceVersion: reviewRecord.sourceVersion,
       revisionLevel: level || null,
       reviewedFileAttached: Boolean(reviewedFileId),
+      programChairUid: chair?.id || '',
     }).catch(() => {});
 
     return { id: reviewId, ...reviewRecord };
@@ -295,14 +326,19 @@ export async function getReviews(thesisId) {
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
-export async function getAdviserReviewHistory(uid) {
+export async function getResearchInstructorReviewHistory(uid) {
   const theses = await getAssignedTheses(uid);
   const out = [];
   for (const thesis of theses) {
     const reviews = await getReviews(thesis.id);
     for (const review of reviews) {
-      if (review.adviserUid === uid) out.push({ ...review, thesisId: thesis.id });
+      if ((review.researchInstructorUid || review.adviserUid) === uid) out.push({ ...review, thesisId: thesis.id });
     }
   }
   return out.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+// Legacy export retained for existing imports.
+export async function getAdviserReviewHistory(uid) {
+  return getResearchInstructorReviewHistory(uid);
 }

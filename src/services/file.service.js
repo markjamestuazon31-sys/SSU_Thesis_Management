@@ -16,7 +16,7 @@ const UPLOAD_BATCH_CHUNKS = 8;
 // Downloading fileChunks/{fileId} in one Firebase snapshot forces the browser
 // to receive and JSON-parse the complete base64 manuscript before it can report
 // useful progress. Read bounded key ranges instead so large downloads remain
-// responsive for students, advisers, and administrators.
+// responsive for students, Research Instructors, Program Chairs, and administrators.
 const DOWNLOAD_BATCH_CHUNKS = 16;
 const DOWNLOAD_CONCURRENCY = 2;
 const DOWNLOAD_RETRIES = 2;
@@ -83,7 +83,7 @@ function friendlyReadError(error) {
   const code = String(error?.code || '').toLowerCase();
   const message = String(error?.message || '');
   if (code.includes('permission-denied') || /permission denied/i.test(message)) {
-    return new Error('Your account cannot read this manuscript file. Confirm that you are the student, assigned adviser, or administrator for this thesis and deploy the current Realtime Database rules.');
+    return new Error('Your account cannot read this manuscript file. Confirm that you are the student, assigned Research Instructor, Program Chair, or administrator for this thesis and deploy the current Realtime Database rules.');
   }
   if (code.includes('network') || /network|offline|failed to fetch/i.test(message)) {
     return new Error('The file could not be downloaded because the network connection was interrupted. Check the internet connection and retry.');

@@ -48,7 +48,7 @@ export async function render({ params, currentUser }) {
 
           <div class="public-record-meta-grid public-record-meta-grid-large public-record-meta-grid-v62">
             <div><span>Program</span><strong>${escapeHtml(thesis.program || '—')}</strong></div>
-            <div><span>Adviser</span><strong>${escapeHtml(thesis.adviserName || '—')}</strong></div>
+            <div><span>Research Instructor</span><strong>${escapeHtml(thesis.researchInstructorName || thesis.adviserName || '—')}</strong></div>
             <div><span>Academic Year</span><strong>${escapeHtml(thesis.academicYear || '—')}</strong></div>
             <div><span>Published</span><strong>${formatDate(thesis.publishedAt)}</strong></div>
             <div><span>College / Department</span><strong>${escapeHtml(thesis.department || 'College of Arts and Sciences')}</strong></div>

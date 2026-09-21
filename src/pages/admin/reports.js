@@ -46,7 +46,7 @@ function filterTheses(rows, filters) {
       thesis.ownerName,
       thesis.authors,
       thesis.program,
-      thesis.adviserName,
+      thesis.researchInstructorName || thesis.adviserName,
       thesis.keywords,
       thesis.year,
       thesis.academicYear,
@@ -117,13 +117,13 @@ function filteredThesisTable(theses) {
 
   return `<div class="table-wrap report-preview-table-wrap">
     <table class="data-table report-preview-table">
-      <thead><tr><th>Research title</th><th>Student / Researchers</th><th>Course / Program</th><th>Research year</th><th>Adviser</th><th>Status</th></tr></thead>
+      <thead><tr><th>Research title</th><th>Student / Researchers</th><th>Course / Program</th><th>Research year</th><th>Research Instructor</th><th>Status</th></tr></thead>
       <tbody>${theses.map((thesis) => `<tr>
         <td><div class="table-title">${escapeHtml(thesis.title || 'Untitled Thesis')}</div></td>
         <td><div>${escapeHtml(thesis.authors || thesis.studentName || thesis.ownerName || '—')}</div>${thesis.authors && thesis.studentName ? `<div class="table-subtitle">Submitted by ${escapeHtml(thesis.studentName)}</div>` : ''}</td>
         <td>${escapeHtml(thesis.program || 'Not specified')}</td>
         <td>${escapeHtml(thesis.year || '—')}</td>
-        <td>${escapeHtml(thesis.adviserName || 'Unassigned')}</td>
+        <td>${escapeHtml(thesis.researchInstructorName || thesis.adviserName || 'Unassigned')}</td>
         <td>${statusBadge(thesis.status || 'unspecified', statusLabel(thesis.status || 'unspecified'))}</td>
       </tr>`).join('')}</tbody>
     </table>
@@ -175,7 +175,7 @@ function reportWorkspace(data, theses, filters) {
     <section class="panel report-records-panel">
       <div class="report-table-heading"><div><h2>Thesis records <span id="report-table-count">${theses.length} record${theses.length === 1 ? '' : 's'}</span></h2><p>The table, CSV export, and print report use the same selected records.</p></div></div>
       <div class="report-table-toolbar">
-        <label class="report-table-search">${icon('search', 17)}<input id="report-search" name="search" form="report-filter-form" type="search" placeholder="Search by title, student, researcher, or adviser..." autocomplete="off"></label>
+        <label class="report-table-search">${icon('search', 17)}<input id="report-search" name="search" form="report-filter-form" type="search" placeholder="Search by title, student, researcher, or Research Instructor..." autocomplete="off"></label>
         <div class="report-table-tools"><div class="report-filter-tags" data-report-filter-tags>${activeFilterTags(filters)}</div><button class="report-clear-link" type="button" data-clear-report-filters>Clear all</button></div>
       </div>
       <div id="report-table-results">${filteredThesisTable(theses)}</div>
@@ -218,7 +218,7 @@ function exportFilteredCsv() {
     toast('No matching records are available to export.', 'error');
     return;
   }
-  const header = ['No.', 'Research Title', 'Student / Researchers', 'Submitted By', 'Course / Program', 'Research Year', 'Academic Year', 'Adviser', 'Status'];
+  const header = ['No.', 'Research Title', 'Student / Researchers', 'Submitted By', 'Course / Program', 'Research Year', 'Academic Year', 'Research Instructor', 'Status'];
   const lines = [
     header.map(csvEscape).join(','),
     ...visibleTheses.map((thesis, index) => [
@@ -229,7 +229,7 @@ function exportFilteredCsv() {
       thesis.program,
       thesis.year,
       thesis.academicYear,
-      thesis.adviserName,
+      thesis.researchInstructorName || thesis.adviserName,
       statusLabel(thesis.status),
     ].map(csvEscape).join(',')),
   ];
@@ -274,8 +274,8 @@ function buildPrintDocument(theses, filters) {
       <div><strong>${summary.rejected}</strong><span>Rejected</span></div>
       <div><strong>${summary.publicationRate}%</strong><span>Uploaded Thesis Rate</span></div>
     </section>
-    <table><thead><tr><th class="num">No.</th><th class="title">Research Title</th><th class="researcher">Student / Researchers</th><th class="program">Course / Program</th><th class="year">Research Year</th><th class="academic">Academic Year</th><th class="adviser">Adviser</th><th class="status">Status</th></tr></thead><tbody>
-      ${theses.map((thesis, index) => `<tr><td class="num">${index + 1}</td><td>${escapeHtml(thesis.title || 'Untitled Thesis')}</td><td>${escapeHtml(thesis.authors || thesis.studentName || thesis.ownerName || '—')}</td><td>${escapeHtml(thesis.program || 'Not specified')}</td><td>${escapeHtml(thesis.year || '—')}</td><td>${escapeHtml(thesis.academicYear || '—')}</td><td>${escapeHtml(thesis.adviserName || 'Unassigned')}</td><td>${escapeHtml(statusLabel(thesis.status))}</td></tr>`).join('')}
+    <table><thead><tr><th class="num">No.</th><th class="title">Research Title</th><th class="researcher">Student / Researchers</th><th class="program">Course / Program</th><th class="year">Research Year</th><th class="academic">Academic Year</th><th class="adviser">Research Instructor</th><th class="status">Status</th></tr></thead><tbody>
+      ${theses.map((thesis, index) => `<tr><td class="num">${index + 1}</td><td>${escapeHtml(thesis.title || 'Untitled Thesis')}</td><td>${escapeHtml(thesis.authors || thesis.studentName || thesis.ownerName || '—')}</td><td>${escapeHtml(thesis.program || 'Not specified')}</td><td>${escapeHtml(thesis.year || '—')}</td><td>${escapeHtml(thesis.academicYear || '—')}</td><td>${escapeHtml(thesis.researchInstructorName || thesis.adviserName || 'Unassigned')}</td><td>${escapeHtml(statusLabel(thesis.status))}</td></tr>`).join('')}
     </tbody></table>
     <footer class="footer"><span>Generated by ${escapeHtml(APP_CONFIG.shortName)}</span><span>${theses.length} matching record${theses.length === 1 ? '' : 's'}</span></footer>
   </body></html>`;

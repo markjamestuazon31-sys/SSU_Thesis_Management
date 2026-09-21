@@ -14,7 +14,7 @@ export function reviewAnnotationMarkup(review) {
   return `<figure class="review-annotation-card">
     <div class="review-annotation-heading"><div><strong>Visual revision markup</strong><span>${escapeHtml(pageLabel || 'Page or section not specified')}</span></div><button class="btn btn-secondary btn-sm" type="button" data-annotation-download>Download markup</button></div>
     <button class="review-annotation-preview" type="button" data-annotation-preview aria-label="Open visual revision markup">
-      <img src="${escapeHtml(source)}" alt="Visual revision markup from the thesis adviser">
+      <img src="${escapeHtml(source)}" alt="Visual revision markup from the Research Instructor">
     </button>
   </figure>`;
 }

@@ -1,7 +1,6 @@
 import { pageHeader } from '../../components/ui.js';
 import { getSystemSettings } from '../../services/settings.service.js';
 import { submitNewThesis } from '../../services/thesis.service.js';
-import { getSubmissionAdvisers } from '../../services/user.service.js';
 import { escapeHtml, formDataObject, setButtonLoading } from '../../utils/dom.js';
 import { toast } from '../../components/toast.js';
 import { icon } from '../../components/icons.js';
@@ -18,26 +17,13 @@ function yearOptions(selectedYear = currentYear) {
     .join('');
 }
 
-function adviserOptions(advisers) {
-  return advisers.map((adviser) => {
-    const department = adviser.department || 'College of Arts and Sciences';
-    return `<option
-      value="${escapeHtml(adviser.id)}"
-      data-name="${escapeHtml(adviser.displayName || 'Thesis Adviser')}"
-      data-employee="${escapeHtml(adviser.employeeId || '')}"
-      data-department="${escapeHtml(department)}"
-    >${escapeHtml(adviser.displayName || 'Thesis Adviser')}${adviser.employeeId ? ` — ${escapeHtml(adviser.employeeId)}` : ''}</option>`;
-  }).join('');
-}
-
 export async function render({ profile }) {
-  const [settings, advisers] = await Promise.all([
-    getSystemSettings().catch(() => ({ submissionOpen: true, academicYear: '' })),
-    getSubmissionAdvisers().catch(() => []),
-  ]);
+  const settings = await getSystemSettings().catch(() => ({ submissionOpen: true, academicYear: '' }));
+  const researchInstructorUid = String(profile.researchInstructorUid || profile.adviserUid || '');
+  const researchInstructorName = String(profile.researchInstructorName || profile.adviserName || '');
 
   if (!settings.submissionOpen) {
-    return `${pageHeader('New Thesis Submission', 'Submit a new research manuscript for adviser review.')}
+    return `${pageHeader('New Thesis Submission', 'Submit a new research manuscript for Research Instructor review.')}
       <section class="panel form-panel professional-submit-panel">
         <div class="panel-body">
           <div class="notice-box warning">
@@ -48,13 +34,13 @@ export async function render({ profile }) {
       </section>`;
   }
 
-  if (!advisers.length) {
-    return `${pageHeader('New Thesis Submission', 'Submit a new research manuscript for adviser review.')}
+  if (!researchInstructorUid || !researchInstructorName) {
+    return `${pageHeader('New Thesis Submission', 'Submit a new research manuscript for Research Instructor review.')}
       <section class="panel form-panel professional-submit-panel">
         <div class="panel-body">
           <div class="notice-box warning">
-            <strong>No active thesis advisers are available.</strong>
-            <p>The administrator must create and activate at least one adviser account before students can submit research.</p>
+            <strong>No Research Instructor is assigned to your student account.</strong>
+            <p>Your Research Instructor must be selected during student registration. Contact the administrator if your account needs correction.</p>
           </div>
           <div class="form-actions" style="margin-top:18px">
             <a class="btn btn-secondary" href="#/dashboard">Return to dashboard</a>
@@ -68,15 +54,16 @@ export async function render({ profile }) {
 
   return `${pageHeader(
     'New Thesis Submission',
-    'Complete the research record, select your thesis adviser, and submit your manuscript for review.'
+    'Complete the research record and submit your manuscript to the Research Instructor assigned to your student account.'
   )}
 
     <div class="pro-submit-shell">
       <ol class="pro-submit-steps" aria-label="Thesis submission workflow">
         <li class="active"><span>1</span><div><strong>Student Submission</strong><small>Research metadata and manuscript</small></div></li>
-        <li><span>2</span><div><strong>Adviser Review</strong><small>Review, revision, or approval</small></div></li>
-        <li><span>3</span><div><strong>Admin Approval</strong><small>Final institutional review</small></div></li>
-        <li><span>4</span><div><strong>Upload Thesis</strong><small>Final approved manuscript record</small></div></li>
+        <li><span>2</span><div><strong>Research Instructor Review</strong><small>Review, revision, or approval</small></div></li>
+        <li><span>3</span><div><strong>Program Chair</strong><small>Program monitoring only</small></div></li>
+        <li><span>4</span><div><strong>Admin Approval</strong><small>Final institutional decision</small></div></li>
+        <li><span>5</span><div><strong>Repository</strong><small>Approved thesis publication</small></div></li>
       </ol>
 
       <form id="submit-form" class="pro-submit-form" novalidate>
@@ -171,27 +158,24 @@ export async function render({ profile }) {
             <div class="pro-section-icon adviser">${icon('users', 19)}</div>
             <div>
               <span class="pro-section-kicker">Section 03</span>
-              <h2>Thesis Adviser</h2>
-              <p>Select the active adviser who will receive and review this specific research submission.</p>
+              <h2>Assigned Research Instructor</h2>
+              <p>Your Research Instructor was selected during student account creation and cannot be changed from this submission form.</p>
             </div>
           </header>
 
           <div class="pro-submit-card-body adviser-selection-grid">
             <label class="field">
-              <span>Choose thesis adviser <b>*</b></span>
-              <select id="adviser-select" name="adviserUid" required>
-                <option value="">Select an active adviser</option>
-                ${adviserOptions(advisers)}
-              </select>
-              <small>Only active adviser accounts created by the administrator are listed.</small>
+              <span>Research Instructor</span>
+              <input value="${escapeHtml(researchInstructorName)}" readonly>
+              <small>Assigned to your registered program: ${escapeHtml(profile.program || 'Program not recorded')}.</small>
             </label>
 
-            <aside class="selected-adviser-card empty" id="selected-adviser-card" aria-live="polite">
+            <aside class="selected-adviser-card" aria-live="polite">
               <div class="selected-adviser-avatar">${icon('user', 21)}</div>
               <div>
-                <small>Selected adviser</small>
-                <strong id="selected-adviser-name">No adviser selected</strong>
-                <span id="selected-adviser-meta">Choose an adviser from the list.</span>
+                <small>Account assignment</small>
+                <strong>${escapeHtml(researchInstructorName)}</strong>
+                <span>The system automatically routes this submission to your Research Instructor.</span>
               </div>
             </aside>
           </div>
@@ -203,7 +187,7 @@ export async function render({ profile }) {
             <div>
               <span class="pro-section-kicker">Section 04</span>
               <h2>Manuscript Upload</h2>
-              <p>Upload the manuscript that will be reviewed by your selected adviser.</p>
+              <p>Upload the manuscript that will be reviewed by your assigned Research Instructor.</p>
             </div>
           </header>
 
@@ -226,7 +210,7 @@ export async function render({ profile }) {
 
             <label class="field pro-field-full">
               <span>Submission note <em>(optional)</em></span>
-              <textarea name="note" rows="3" maxlength="1000" placeholder="Add a short message or instruction for your selected adviser"></textarea>
+              <textarea name="note" rows="3" maxlength="1000" placeholder="Add a short message or instruction for your Research Instructor"></textarea>
             </label>
 
             <div class="upload-progress" id="upload-progress" hidden>
@@ -240,11 +224,11 @@ export async function render({ profile }) {
         <footer class="pro-submit-footer">
           <div class="pro-submit-assurance">
             ${icon('check', 17)}
-            <span>Submission sends this research directly to the selected adviser. Publication requires adviser approval followed by final administrator approval.</span>
+            <span>Submission is sent to your assigned Research Instructor. After instructor approval, the Program Chair can monitor the record and the administrator makes the final approval decision.</span>
           </div>
           <div class="form-actions professional-form-actions">
             <a class="btn btn-secondary" href="#/student/theses">Cancel</a>
-            <button class="btn btn-primary pro-submit-button" type="submit">${icon('arrow', 17)} Submit to adviser</button>
+            <button class="btn btn-primary pro-submit-button" type="submit">${icon('arrow', 17)} Submit to Research Instructor</button>
           </div>
         </footer>
       </form>
@@ -266,10 +250,6 @@ export function mount({ profile }) {
   const researcherList = document.getElementById('researcher-list');
   const addResearcherButton = document.getElementById('add-researcher');
   const authorsHidden = document.getElementById('authors-hidden');
-  const adviserSelect = document.getElementById('adviser-select');
-  const adviserCard = document.getElementById('selected-adviser-card');
-  const adviserName = document.getElementById('selected-adviser-name');
-  const adviserMeta = document.getElementById('selected-adviser-meta');
   const abstractInput = document.getElementById('abstract-input');
   const abstractCount = document.getElementById('abstract-count');
   const fileInput = document.getElementById('thesis-file');
@@ -326,21 +306,6 @@ export function mount({ profile }) {
     updateAuthors();
   });
 
-  adviserSelect?.addEventListener('change', () => {
-    const option = adviserSelect.selectedOptions[0];
-    if (!option?.value) {
-      adviserCard.classList.add('empty');
-      adviserName.textContent = 'No adviser selected';
-      adviserMeta.textContent = 'Choose an adviser from the list.';
-      return;
-    }
-    adviserCard.classList.remove('empty');
-    adviserName.textContent = option.dataset.name || option.textContent.trim();
-    const details = [option.dataset.department, option.dataset.employee ? `Employee ID: ${option.dataset.employee}` : '']
-      .filter(Boolean)
-      .join(' · ');
-    adviserMeta.textContent = details || 'Active thesis adviser';
-  });
 
   abstractInput?.addEventListener('input', () => {
     abstractCount.textContent = String(abstractInput.value.length);
@@ -421,7 +386,7 @@ export function mount({ profile }) {
         percent.textContent = `${progress}%`;
         bar.style.width = `${progress}%`;
       });
-      toast(`Research submitted to ${thesis.adviserName} for review.`, 'success');
+      toast(`Research submitted to ${thesis.researchInstructorName || thesis.adviserName} for review.`, 'success');
       location.hash = `#/student/thesis/${thesis.id}`;
     } catch (error) {
       toast(error.message || 'Unable to submit research.', 'error');

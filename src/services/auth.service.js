@@ -37,6 +37,24 @@ function ensureAuth() {
   return auth;
 }
 
+function isInstructorRole(role) {
+  return role === 'research_instructor' || role === 'adviser';
+}
+
+function validateProgram(value) {
+  const program = String(value || '').trim();
+  if (!CAS_PROGRAMS.includes(program)) {
+    throw new Error('Please select a valid College of Arts and Sciences program.');
+  }
+  return program;
+}
+
+function programList(entry = {}) {
+  if (Array.isArray(entry.programs) && entry.programs.length) return entry.programs;
+  if (entry.program) return [entry.program];
+  return [...CAS_PROGRAMS];
+}
+
 export function subscribeToAuth(callback) {
   if (!auth) {
     callback(null);
@@ -57,7 +75,6 @@ export async function getUserProfile(uid) {
     profilePhotoUpdatedAt: photo?.updatedAt || null,
   } : null;
 }
-
 
 export async function ensurePrimaryAdminProfile(firebaseUser) {
   if (!firebaseUser || firebaseUser.uid !== PRIMARY_ADMIN.uid) return null;
@@ -98,7 +115,7 @@ export async function login(email, password) {
 
   if (!profile) {
     await signOut(auth);
-    throw new Error('Authentication succeeded, but no system profile exists for this account. Students must self-register; adviser accounts must be created by the administrator.');
+    throw new Error('Authentication succeeded, but no system profile exists for this account. Students self-register; Research Instructor and Program Chair accounts are created by the administrator.');
   }
 
   if (profile.status !== 'active') {
@@ -118,10 +135,7 @@ export async function requestPasswordReset(email) {
   await sendPasswordResetEmail(ensureAuth(), validEmail(email));
 }
 
-/**
- * Student accounts are self-service only.
- * They are never created from the admin dashboard.
- */
+/** Student self-registration with program-matched Research Instructor selection. */
 export async function registerStudent(payload) {
   const email = validEmail(payload.email);
   const password = validPassword(payload.password);
@@ -130,17 +144,25 @@ export async function registerStudent(payload) {
   const researchTitleNormalized = normalizeResearchTitle(researchTitle);
   const researchYear = validResearchYear(payload.researchYear);
   const registrationKey = researchRegistrationKey(researchTitleNormalized);
+  const program = validateProgram(payload.program);
+  const researchInstructorUid = String(payload.researchInstructorUid || '').trim();
 
   if (!displayName) throw new Error('Full name is required.');
+  if (!researchInstructorUid) throw new Error('Please select your Research Instructor.');
 
-  const program = String(payload.program || '').trim();
-  if (!CAS_PROGRAMS.includes(program)) {
-    throw new Error('Please select a valid College of Arts and Sciences program.');
+  const instructor = await getValue(`researchInstructorDirectory/${researchInstructorUid}`)
+    || await getValue(`adviserDirectory/${researchInstructorUid}`);
+  if (!instructor || (instructor.status || 'active') !== 'active') {
+    throw new Error('The selected Research Instructor is not active. Please select another instructor.');
+  }
+  if (!programList(instructor).includes(program)) {
+    throw new Error('The selected Research Instructor is not assigned to your program.');
   }
 
   const credential = await createUserWithEmailAndPassword(ensureAuth(), email, password);
   const claimPath = `researchRegistrationClaims/${researchYear}/${registrationKey}`;
   let claimCreated = false;
+
   try {
     await updateProfile(credential.user, { displayName });
     const now = Date.now();
@@ -154,13 +176,12 @@ export async function registerStudent(payload) {
     });
 
     if (!claimCreated) {
-      const duplicateError = new Error(
-        `An account already exists for the research title “${researchTitle}” in ${researchYear}. Use a different title or verify the research year.`,
-      );
+      const duplicateError = new Error(`An account already exists for the research title “${researchTitle}” in ${researchYear}. Use a different title or verify the research year.`);
       duplicateError.code = 'research/duplicate-title-year';
       throw duplicateError;
     }
 
+    const instructorName = instructor.displayName || 'Research Instructor';
     const profile = {
       email,
       displayName,
@@ -169,19 +190,26 @@ export async function registerStudent(payload) {
       studentId: String(payload.studentId || '').trim(),
       program,
       department: 'College of Arts and Sciences',
-      adviserUid: '',
-      adviserName: '',
+      researchInstructorUid,
+      researchInstructorName: instructorName,
+      // Compatibility mirrors for thesis records created by older versions.
+      adviserUid: researchInstructorUid,
+      adviserName: instructorName,
       researchTitle,
       researchTitleNormalized,
       researchYear,
       researchRegistrationKey: registrationKey,
       createdAt: now,
       updatedAt: now,
-      registrationSource: 'student_self_registration',
+      registrationSource: 'student_self_registration_v8',
     };
 
     await setValue(`users/${credential.user.uid}`, profile);
-    await logAudit(credential.user.uid, 'student_registered', { email }).catch(() => {});
+    await logAudit(credential.user.uid, 'student_registered', {
+      email,
+      program,
+      researchInstructorUid,
+    }).catch(() => {});
     return { uid: credential.user.uid, ...profile };
   } catch (error) {
     if (claimCreated) await removeValue(claimPath).catch(() => {});
@@ -190,21 +218,26 @@ export async function registerStudent(payload) {
   }
 }
 
-/**
- * Adviser accounts are created only by an authenticated administrator.
- * A secondary Firebase Auth instance is used so the administrator remains
- * signed in after the adviser account is created.
- */
-export async function createAdviserAccount(adminUid, payload) {
+async function createStaffAccount(adminUid, payload, { role, source, label }) {
   const email = validEmail(payload.email);
   const password = validPassword(payload.password);
   const displayName = String(payload.displayName || '').trim();
   const employeeId = String(payload.employeeId || '').trim();
   const department = String(payload.department || 'College of Arts and Sciences').trim();
+  const program = validateProgram(payload.program);
 
-  if (!displayName) throw new Error('Adviser full name is required.');
+  if (!displayName) throw new Error(`${label} full name is required.`);
+  if (!employeeId) throw new Error('Employee ID is required.');
 
-  const secondaryApp = initializeApp(firebaseConfig, `adviser-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  if (role === 'program_chair') {
+    const directory = await getValue('programChairDirectory');
+    const duplicate = Object.values(directory || {}).find((chair) => (
+      chair?.program === program && (chair?.status || 'active') === 'active'
+    ));
+    if (duplicate) throw new Error(`An active Program Chair is already assigned to ${program}. Disable the current Chair before creating another active Chair for this program.`);
+  }
+
+  const secondaryApp = initializeApp(firebaseConfig, `${role}-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const secondaryAuth = getAuth(secondaryApp);
   let createdUser = null;
 
@@ -217,34 +250,51 @@ export async function createAdviserAccount(adminUid, payload) {
     const profile = {
       email,
       displayName,
-      role: 'adviser',
+      role,
       status: 'active',
       employeeId,
       studentId: '',
-      program: '',
+      program,
       department,
-      adviserUid: '',
-      adviserName: '',
       createdBy: adminUid,
       createdAt: now,
       updatedAt: now,
-      accountSource: 'admin_created_adviser',
+      accountSource: source,
     };
 
-    await updateRoot({
-      [`users/${createdUser.uid}`]: profile,
-      [`adviserDirectory/${createdUser.uid}`]: {
+    const updates = { [`users/${createdUser.uid}`]: profile };
+
+    if (role === 'research_instructor') {
+      const directoryEntry = {
         displayName,
         employeeId,
         department,
+        program,
+        programs: [program],
         status: 'active',
         updatedAt: now,
-      },
-    });
-    await logAudit(adminUid, 'adviser_account_created', {
+      };
+      updates[`researchInstructorDirectory/${createdUser.uid}`] = directoryEntry;
+      updates[`adviserDirectory/${createdUser.uid}`] = directoryEntry;
+    }
+
+    if (role === 'program_chair') {
+      updates[`programChairDirectory/${createdUser.uid}`] = {
+        displayName,
+        employeeId,
+        department,
+        program,
+        status: 'active',
+        updatedAt: now,
+      };
+    }
+
+    await updateRoot(updates);
+    await logAudit(adminUid, `${role}_account_created`, {
       uid: createdUser.uid,
       email,
       employeeId,
+      program,
     }).catch(() => {});
 
     return { uid: createdUser.uid, ...profile };
@@ -255,6 +305,27 @@ export async function createAdviserAccount(adminUid, payload) {
     await signOut(secondaryAuth).catch(() => {});
     await deleteApp(secondaryApp).catch(() => {});
   }
+}
+
+export async function createResearchInstructorAccount(adminUid, payload) {
+  return createStaffAccount(adminUid, payload, {
+    role: 'research_instructor',
+    source: 'admin_created_research_instructor',
+    label: 'Research Instructor',
+  });
+}
+
+// Legacy function name retained for any older module still importing it.
+export async function createAdviserAccount(adminUid, payload) {
+  return createResearchInstructorAccount(adminUid, payload);
+}
+
+export async function createProgramChairAccount(adminUid, payload) {
+  return createStaffAccount(adminUid, payload, {
+    role: 'program_chair',
+    source: 'admin_created_program_chair',
+    label: 'Program Chair',
+  });
 }
 
 export async function changePassword(newPassword) {
@@ -271,37 +342,50 @@ export async function updateOwnProfile(uid, patch) {
   const displayName = String(patch.displayName || '').trim();
   if (!displayName) throw new Error('Full name is required.');
 
+  const staffRole = isInstructorRole(existing.role) || existing.role === 'program_chair';
   const safe = {
     displayName,
-    program: existing.role === 'student'
-      ? String(patch.program || '').trim()
-      : String(existing.program || ''),
-    department: existing.role === 'student' || existing.role === 'adviser'
-      ? 'College of Arts and Sciences'
-      : String(patch.department || existing.department || '').trim(),
+    // Academic program assignment is controlled by the administrator so
+    // student/instructor/chair routing cannot be changed from My Profile.
+    program: String(existing.program || ''),
+    department: existing.role === 'admin'
+      ? String(patch.department || existing.department || '').trim()
+      : 'College of Arts and Sciences',
     studentId: existing.role === 'student'
       ? String(patch.studentId || '').trim()
       : String(existing.studentId || ''),
-    employeeId: existing.role === 'adviser'
+    employeeId: staffRole
       ? String(patch.employeeId || '').trim()
       : String(existing.employeeId || ''),
     updatedAt: Date.now(),
   };
 
-  if (existing.role === 'student' && !CAS_PROGRAMS.includes(safe.program)) {
-    throw new Error('Please select a valid College of Arts and Sciences program.');
-  }
-
   await updateValue(`users/${uid}`, safe);
 
-  if (existing.role === 'adviser') {
-    // Keep the student adviser selector synchronized with the adviser's
-    // editable display identity. Older adviser accounts without a directory
-    // entry can still update their user profile; an admin sync can create the
-    // missing directory entry later.
-    await updateValue(`adviserDirectory/${uid}`, {
+  if (isInstructorRole(existing.role)) {
+    const programs = existing.program ? [existing.program] : [...CAS_PROGRAMS];
+    const directoryEntry = {
       displayName,
+      employeeId: safe.employeeId,
       department: safe.department,
+      program: existing.program || '',
+      programs,
+      status: existing.status || 'active',
+      updatedAt: safe.updatedAt,
+    };
+    await updateRoot({
+      [`researchInstructorDirectory/${uid}`]: directoryEntry,
+      [`adviserDirectory/${uid}`]: directoryEntry,
+    }).catch(() => {});
+  }
+
+  if (existing.role === 'program_chair') {
+    await updateValue(`programChairDirectory/${uid}`, {
+      displayName,
+      employeeId: safe.employeeId,
+      department: safe.department,
+      program: existing.program || '',
+      status: existing.status || 'active',
       updatedAt: safe.updatedAt,
     }).catch(() => {});
   }

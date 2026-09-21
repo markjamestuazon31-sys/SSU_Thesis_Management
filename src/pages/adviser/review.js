@@ -77,7 +77,7 @@ function reviewHistory(reviews, files) {
       <div class="timeline-dot"></div>
       <div>
         <div class="timeline-head">
-          <div><strong>${escapeHtml(review.adviserName || 'Thesis Adviser')}</strong><span class="review-version-v80">Version ${escapeHtml(String(review.sourceVersion || '—'))}</span></div>
+          <div><strong>${escapeHtml(review.researchInstructorName || review.adviserName || 'Research Instructor')}</strong><span class="review-version-v80">Version ${escapeHtml(String(review.sourceVersion || '—'))}</span></div>
           ${statusBadge(review.decision)}
         </div>
         ${level ? `<span class="review-level-v80 review-level-v80--${escapeHtml(review.revisionLevel)}">${escapeHtml(level)}</span>` : ''}
@@ -115,11 +115,11 @@ function decisionPanel({ thesis, draft, draftMetadata }) {
         <span>Step 3</span>
         <div><h3>Choose your review decision</h3><p>The student is notified only after you submit the final decision.</p></div>
       </div>
-      <div class="review-decision-grid-v80" role="radiogroup" aria-label="Adviser review decision">
+      <div class="review-decision-grid-v80" role="radiogroup" aria-label="Research Instructor review decision">
         <label class="review-decision-card-v80">
-          <input type="radio" name="decision" value="adviser_approved" ${draftDecision === 'adviser_approved' ? 'checked' : ''} required>
+          <input type="radio" name="decision" value="instructor_approved" ${['instructor_approved', 'adviser_approved'].includes(draftDecision) ? 'checked' : ''} required>
           <span class="review-decision-icon-v80 review-decision-icon-v80--approve">${icon('check', 22)}</span>
-          <span><strong>Approve Manuscript</strong><small>Forward this version to the administrator for final approval and publication.</small></span>
+          <span><strong>Approve Manuscript</strong><small>Route this version to Program Chair monitoring and the administrator for final approval.</small></span>
         </label>
         <label class="review-decision-card-v80">
           <input type="radio" name="decision" value="revision_required" ${revisionSelected ? 'checked' : ''} required>
@@ -131,7 +131,7 @@ function decisionPanel({ thesis, draft, draftMetadata }) {
 
     <section class="review-form-section-v80">
       <label class="field review-feedback-field-v80">
-        <span>Adviser feedback / instructions</span>
+        <span>Research Instructor feedback / instructions</span>
         <textarea name="comment" rows="6" required placeholder="Give clear, academic, and actionable instructions to the student.">${escapeHtml(draftComment)}</textarea>
         <small>This message becomes part of the permanent review history.</small>
       </label>
@@ -172,8 +172,8 @@ function decisionPanel({ thesis, draft, draftMetadata }) {
 
 export async function render({ profile, params }) {
   const thesis = await getThesis(params.id);
-  if (!thesis || thesis.adviserUid !== profile.uid) {
-    return emptyState('Thesis not available', 'This research was not submitted to your adviser account.', '<a class="btn btn-secondary" href="#/adviser/assigned">Back</a>');
+  if (!thesis || (thesis.researchInstructorUid || thesis.adviserUid) !== profile.uid) {
+    return emptyState('Thesis not available', 'This research was not submitted to your Research Instructor account.', '<a class="btn btn-secondary" href="#/research-instructor/assigned">Back</a>');
   }
 
   const [reviews, history, draft] = await Promise.all([
@@ -199,21 +199,21 @@ export async function render({ profile, params }) {
   const reviewOpen = ['submitted', 'under_review'].includes(thesis.status);
 
   const waitingMessage = thesis.status === 'revision_required'
-    ? ['Waiting for student revision', 'The student received your reviewed copy and feedback. A new adviser review opens after the student submits the next version.']
-    : ['Review cycle completed', ['adviser_approved', 'recommended', 'published'].includes(thesis.status)
-      ? 'This version has already been approved by the adviser. Check the history below for the recorded decision.'
-      : 'This thesis is not currently open for a new adviser decision.'];
+    ? ['Waiting for student revision', 'The student received your reviewed copy and feedback. A new Research Instructor review opens after the student submits the next version.']
+    : ['Review cycle completed', ['instructor_approved', 'adviser_approved', 'recommended', 'published'].includes(thesis.status)
+      ? 'This version has already been approved by the Research Instructor. Check the history below for the recorded decision.'
+      : 'This thesis is not currently open for a new Research Instructor decision.'];
 
   return `${pageHeader(
     'Manuscript Review',
     'Download the student submission, review it in your preferred document editor, then return the reviewed copy and decision through this page.',
-    '<a class="btn btn-secondary" href="#/adviser/assigned">Back to Assigned Research</a>',
+    '<a class="btn btn-secondary" href="#/research-instructor/assigned">Back to Assigned Research</a>',
   )}
 
   <div class="review-workspace-v80">
     <section class="review-overview-v80">
       <div class="review-record-heading-v80">
-        <div><span class="review-kicker-v80">Adviser review workspace</span><h2>${escapeHtml(thesis.title)}</h2><p>${escapeHtml(thesis.studentName)} · ${escapeHtml(thesis.program || 'Program not specified')}</p></div>
+        <div><span class="review-kicker-v80">Research Instructor review workspace</span><h2>${escapeHtml(thesis.title)}</h2><p>${escapeHtml(thesis.studentName)} · ${escapeHtml(thesis.program || 'Program not specified')}</p></div>
         <div class="review-heading-status-v80">${statusBadge(thesis.status)}<span class="review-version-badge-v80">Version ${escapeHtml(String(thesis.version || 1))}</span></div>
       </div>
       <div class="review-info-grid-v80">
@@ -257,7 +257,7 @@ export async function render({ profile, params }) {
       </div>
 
       <aside class="panel review-decision-panel-v80">
-        <div class="panel-header"><div><p class="eyebrow">Adviser action</p><h2>${reviewOpen ? 'Complete the review' : 'Current review status'}</h2></div></div>
+        <div class="panel-header"><div><p class="eyebrow">Research Instructor action</p><h2>${reviewOpen ? 'Complete the review' : 'Current review status'}</h2></div></div>
         <div class="panel-body">
           ${reviewOpen
             ? decisionPanel({ thesis, draft, draftMetadata: reviewFiles.get(draft?.reviewedFileId) })
@@ -267,7 +267,7 @@ export async function render({ profile, params }) {
     </section>
 
     <section class="panel review-panel-v80">
-      <div class="panel-header"><div><p class="eyebrow">Audit trail</p><h2>Review history</h2><p>Every final adviser decision is preserved by student manuscript version.</p></div></div>
+      <div class="panel-header"><div><p class="eyebrow">Audit trail</p><h2>Review history</h2><p>Every final Research Instructor decision is preserved by student manuscript version.</p></div></div>
       <div class="panel-body timeline">${reviewHistory(reviews, reviewFiles)}</div>
     </section>
   </div>`;
@@ -337,7 +337,7 @@ export function mount({ profile, params }) {
         onProgress: updateProgress,
       });
       toast('Review draft saved. The student was not notified.', 'success');
-      location.hash = `#/adviser/review/${params.id}?refresh=${Date.now()}`;
+      location.hash = `#/research-instructor/review/${params.id}?refresh=${Date.now()}`;
     } catch (error) {
       toast(error?.message || 'Unable to save the review draft.', 'error');
     } finally {
@@ -352,7 +352,7 @@ export function mount({ profile, params }) {
     try {
       await discardReviewDraft(profile, params.id);
       toast('Review draft discarded.', 'success');
-      location.hash = `#/adviser/review/${params.id}?refresh=${Date.now()}`;
+      location.hash = `#/research-instructor/review/${params.id}?refresh=${Date.now()}`;
     } catch (error) {
       toast(error?.message || 'Unable to discard the review draft.', 'error');
     } finally {
@@ -373,12 +373,12 @@ export function mount({ profile, params }) {
         reviewedFile: reviewedFileInput?.files?.[0] || null,
         onProgress: updateProgress,
       });
-      toast(data.decision === 'adviser_approved'
-        ? 'Manuscript approved and forwarded to the administrator.'
+      toast(data.decision === 'instructor_approved'
+        ? 'Manuscript approved. It is now visible to the Program Chair for monitoring and is awaiting final administrator approval.'
         : 'Revision request and reviewed manuscript sent to the student.', 'success');
-      location.hash = `#/adviser/review/${params.id}?refresh=${Date.now()}`;
+      location.hash = `#/research-instructor/review/${params.id}?refresh=${Date.now()}`;
     } catch (error) {
-      toast(error?.message || 'Unable to submit the adviser decision.', 'error');
+      toast(error?.message || 'Unable to submit the Research Instructor decision.', 'error');
     } finally {
       setButtonLoading(button, false);
     }

@@ -1,8 +1,9 @@
-import { THESIS_STATUS } from '../config/app.config.js';
+import { CAS_PROGRAMS, THESIS_STATUS } from '../config/app.config.js';
 import { createKey, getCollection, getValue, queryByChild, removeValue, setValue, updateValue } from './db.service.js';
 import { uploadFileToRealtimeDatabase } from './file.service.js';
 import { createNotification } from './notification.service.js';
 import { logAudit } from './audit.service.js';
+import { getProgramChairForProgram } from './user.service.js';
 
 const normalize = (item, id) => item ? { id, ...item } : null;
 
@@ -15,7 +16,18 @@ export async function getMyTheses(uid) {
 }
 
 export async function getAssignedTheses(uid) {
-  return (await queryByChild('theses', 'adviserUid', uid)).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const [current, legacy] = await Promise.all([
+    queryByChild('theses', 'researchInstructorUid', uid).catch(() => []),
+    queryByChild('theses', 'adviserUid', uid).catch(() => []),
+  ]);
+  const merged = new Map();
+  [...legacy, ...current].forEach((item) => merged.set(item.id, item));
+  return [...merged.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+}
+
+export async function getProgramChairTheses(program) {
+  if (!CAS_PROGRAMS.includes(String(program || ''))) return [];
+  return (await queryByChild('theses', 'program', program)).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 }
 
 export async function getAllTheses() {
@@ -38,11 +50,6 @@ export async function getSubmissionHistory(id) {
     .sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
 }
 
-/**
- * New workflow (v5.5):
- * Admin creates adviser account -> Student selects an active adviser while
- * submitting -> Adviser reviews/approves -> Admin approves & publishes.
- */
 function normalizeText(value, maxLength = 5000) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
 }
@@ -69,7 +76,7 @@ function validateSubmissionMetadata(profile, payload) {
   if (!authorsList.length) throw new Error('Add at least one researcher.');
   if (abstract.length < 20) throw new Error('Provide a complete research abstract.');
   if (!keywords) throw new Error('Provide at least one research keyword.');
-  if (!program) throw new Error('Your student account does not have a valid CAS program.');
+  if (!CAS_PROGRAMS.includes(program)) throw new Error('Your student account does not have a valid CAS program.');
   if (!academicYear) throw new Error('Enter the academic year for this research.');
   if (!Number.isInteger(year) || year < 2000 || year > 2100) throw new Error('Select a valid research year.');
 
@@ -86,17 +93,36 @@ function validateSubmissionMetadata(profile, payload) {
   };
 }
 
+function entryPrograms(entry = {}) {
+  if (Array.isArray(entry.programs) && entry.programs.length) return entry.programs;
+  if (entry.program) return [entry.program];
+  return [...CAS_PROGRAMS];
+}
+
+async function getInstructorEntry(uid) {
+  if (!uid) return null;
+  return await getValue(`researchInstructorDirectory/${uid}`)
+    || await getValue(`adviserDirectory/${uid}`);
+}
+
 export async function submitNewThesis(profile, payload, file, onProgress) {
   if (!profile?.uid) throw new Error('Your student session is not available. Please sign in again.');
-  const adviserUid = String(payload.adviserUid || '').trim();
-  if (!adviserUid) throw new Error('Please select a thesis adviser before submitting your research.');
 
-  const metadata = validateSubmissionMetadata(profile, payload);
-  const adviser = await getValue(`adviserDirectory/${adviserUid}`);
-  if (!adviser || adviser.status !== 'active') {
-    throw new Error('The selected adviser account is not available. Please choose another active adviser.');
+  const researchInstructorUid = String(profile.researchInstructorUid || profile.adviserUid || '').trim();
+  if (!researchInstructorUid) {
+    throw new Error('Your student account does not have an assigned Research Instructor. Contact the administrator before submitting.');
   }
 
+  const metadata = validateSubmissionMetadata(profile, payload);
+  const instructor = await getInstructorEntry(researchInstructorUid);
+  if (!instructor || (instructor.status || 'active') !== 'active') {
+    throw new Error('Your assigned Research Instructor is currently unavailable. Contact the administrator before submitting.');
+  }
+  if (!entryPrograms(instructor).includes(metadata.program)) {
+    throw new Error('Your assigned Research Instructor does not match your registered program. Contact the administrator.');
+  }
+
+  const chair = await getProgramChairForProgram(metadata.program).catch(() => null);
   const thesisId = createKey('theses');
   const now = Date.now();
   const uploaded = await uploadFileToRealtimeDatabase(file, {
@@ -105,6 +131,7 @@ export async function submitNewThesis(profile, payload, file, onProgress) {
     onProgress,
   });
 
+  const researchInstructorName = instructor.displayName || profile.researchInstructorName || profile.adviserName || 'Research Instructor';
   const thesis = {
     title: metadata.title,
     abstract: metadata.abstract,
@@ -117,8 +144,13 @@ export async function submitNewThesis(profile, payload, file, onProgress) {
     department: metadata.department,
     ownerUid: profile.uid,
     studentName: profile.displayName,
-    adviserUid,
-    adviserName: adviser.displayName || 'Thesis Adviser',
+    researchInstructorUid,
+    researchInstructorName,
+    // Compatibility mirrors for existing data queries and old records.
+    adviserUid: researchInstructorUid,
+    adviserName: researchInstructorName,
+    programChairUid: chair?.id || '',
+    programChairName: chair?.displayName || '',
     status: THESIS_STATUS.UNDER_REVIEW,
     currentFileId: uploaded.fileId,
     version: 1,
@@ -137,18 +169,20 @@ export async function submitNewThesis(profile, payload, file, onProgress) {
     submittedAt: now,
   });
 
-  await createNotification(adviserUid, {
-    title: 'New thesis for review',
-    message: `${profile.displayName} selected you as adviser and submitted “${thesis.title}” for review.`,
+  await createNotification(researchInstructorUid, {
+    title: 'New research for review',
+    message: `${profile.displayName} submitted “${thesis.title}” for your Research Instructor review.`,
     type: 'submission',
-    route: `/adviser/review/${thesisId}`,
+    route: `/research-instructor/review/${thesisId}`,
     actorUid: profile.uid,
   });
 
   await logAudit(profile.uid, 'thesis_submitted', {
     thesisId,
     title: thesis.title,
-    adviserUid,
+    researchInstructorUid,
+    program: metadata.program,
+    programChairUid: chair?.id || '',
   }).catch(() => {});
 
   return { id: thesisId, ...thesis };
@@ -159,9 +193,10 @@ export async function resubmitThesis(profile, thesisId, file, note, onProgress) 
   if (!thesis || thesis.ownerUid !== profile.uid) throw new Error('You cannot resubmit this thesis.');
   if (thesis.status !== THESIS_STATUS.REVISION_REQUIRED) throw new Error('This thesis is not requesting a revision.');
 
-  const adviser = await getValue(`adviserDirectory/${thesis.adviserUid}`);
-  if (!adviser || adviser.status !== 'active') {
-    throw new Error('The adviser for this thesis is currently unavailable. Contact the administrator before resubmitting.');
+  const researchInstructorUid = thesis.researchInstructorUid || thesis.adviserUid;
+  const instructor = await getInstructorEntry(researchInstructorUid);
+  if (!instructor || (instructor.status || 'active') !== 'active') {
+    throw new Error('The Research Instructor for this thesis is currently unavailable. Contact the administrator before resubmitting.');
   }
 
   const uploaded = await uploadFileToRealtimeDatabase(file, { ownerUid: profile.uid, thesisId, onProgress });
@@ -184,11 +219,11 @@ export async function resubmitThesis(profile, thesisId, file, note, onProgress) 
     submittedAt: now,
   });
 
-  await createNotification(thesis.adviserUid, {
+  await createNotification(researchInstructorUid, {
     title: 'Revised manuscript submitted',
     message: `${profile.displayName} submitted version ${version} of “${thesis.title}”.`,
     type: 'submission',
-    route: `/adviser/review/${thesisId}`,
+    route: `/research-instructor/review/${thesisId}`,
     actorUid: profile.uid,
   });
 
@@ -207,23 +242,22 @@ function publicationProjection(thesis, publishedAt) {
     program: thesis.program,
     department: thesis.department,
     studentName: thesis.studentName,
-    adviserName: thesis.adviserName || 'Thesis Adviser',
+    researchInstructorName: thesis.researchInstructorName || thesis.adviserName || 'Research Instructor',
+    adviserName: thesis.researchInstructorName || thesis.adviserName || 'Research Instructor',
+    programChairName: thesis.programChairName || '',
     currentFileId: thesis.currentFileId,
     publishedAt,
   };
 }
 
-/**
- * Final admin action. In the revised workflow, admin approval immediately
- * publishes the adviser-approved thesis into the repository.
- */
+/** Final administrator action after Research Instructor approval. */
 export async function approveAndPublishThesis(adminUid, thesisId) {
   const thesis = await getThesis(thesisId);
   if (!thesis) throw new Error('Thesis not found.');
 
-  const allowed = [THESIS_STATUS.ADVISER_APPROVED, THESIS_STATUS.RECOMMENDED];
+  const allowed = [THESIS_STATUS.INSTRUCTOR_APPROVED, THESIS_STATUS.ADVISER_APPROVED, THESIS_STATUS.RECOMMENDED];
   if (!allowed.includes(thesis.status)) {
-    throw new Error('Only a thesis approved by its adviser can receive final administrator approval and thesis upload.');
+    throw new Error('Only research approved by its Research Instructor can receive final administrator approval and thesis upload.');
   }
 
   const now = Date.now();
@@ -246,21 +280,30 @@ export async function approveAndPublishThesis(adminUid, thesisId) {
     actorUid: adminUid,
   });
 
-  if (thesis.adviserUid) {
-    await createNotification(thesis.adviserUid, {
+  const researchInstructorUid = thesis.researchInstructorUid || thesis.adviserUid;
+  if (researchInstructorUid) {
+    await createNotification(researchInstructorUid, {
       title: 'Research published',
       message: `“${thesis.title}” was approved by the administrator and published in the repository.`,
       type: 'success',
       route: `/repository/${thesisId}`,
       actorUid: adminUid,
-    });
+    }).catch(() => {});
+  }
+
+  if (thesis.programChairUid) {
+    await createNotification(thesis.programChairUid, {
+      title: 'Program research published',
+      message: `“${thesis.title}” from ${thesis.program} received final administrator approval and was published.`,
+      type: 'success',
+      route: `/program-chair/research/${thesisId}`,
+      actorUid: adminUid,
+    }).catch(() => {});
   }
 
   await logAudit(adminUid, 'thesis_admin_approved_and_published', { thesisId }).catch(() => {});
 }
 
-// Legacy exports retained so old links/modules do not break. New UI uses
-// approveAndPublishThesis() as the single final administrator action.
 export async function approveThesis(adminUid, thesisId) {
   return approveAndPublishThesis(adminUid, thesisId);
 }
@@ -303,8 +346,8 @@ export async function restoreThesis(adminUid, thesisId) {
   if (!thesis) throw new Error('Thesis not found.');
 
   const status = thesis.previousStatus === THESIS_STATUS.PUBLISHED
-    ? THESIS_STATUS.ADVISER_APPROVED
-    : (thesis.previousStatus || THESIS_STATUS.ADVISER_APPROVED);
+    ? THESIS_STATUS.INSTRUCTOR_APPROVED
+    : (thesis.previousStatus || THESIS_STATUS.INSTRUCTOR_APPROVED);
 
   await updateValue(`theses/${thesisId}`, {
     status,

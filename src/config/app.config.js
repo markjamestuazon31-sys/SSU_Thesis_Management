@@ -3,7 +3,7 @@ export const APP_CONFIG = Object.freeze({
   shortName: 'SSU TMS',
   institution: 'Samar State University',
   unit: 'College of Arts and Sciences',
-  version: '7.0.0',
+  version: '8.0.0-test',
   maxFileSizeBytes: 100 * 1024 * 1024,
   fileChunkBytes: 128 * 1024,
   acceptedExtensions: ['pdf', 'docx'],
@@ -23,14 +23,22 @@ export const PRIMARY_ADMIN = Object.freeze({
   department: 'Samar State University',
 });
 
-export const ROLES = Object.freeze({ STUDENT: 'student', ADVISER: 'adviser', ADMIN: 'admin' });
+export const ROLES = Object.freeze({
+  STUDENT: 'student',
+  RESEARCH_INSTRUCTOR: 'research_instructor',
+  PROGRAM_CHAIR: 'program_chair',
+  ADMIN: 'admin',
+  // Legacy role retained so existing adviser accounts can still sign in.
+  LEGACY_ADVISER: 'adviser',
+});
 
 export const THESIS_STATUS = Object.freeze({
   SUBMITTED: 'submitted',
   UNDER_REVIEW: 'under_review',
   REVISION_REQUIRED: 'revision_required',
+  INSTRUCTOR_APPROVED: 'instructor_approved',
+  // Legacy status retained for existing records.
   ADVISER_APPROVED: 'adviser_approved',
-  // Kept for compatibility with records created by older versions.
   RECOMMENDED: 'recommended',
   APPROVED: 'approved',
   PUBLISHED: 'published',
@@ -40,12 +48,14 @@ export const THESIS_STATUS = Object.freeze({
 
 export const STATUS_LABELS = Object.freeze({
   submitted: 'Submitted',
-  under_review: 'Under Adviser Review',
+  under_review: 'Under Research Instructor Review',
   revision_required: 'Revision Required',
-  adviser_approved: 'Adviser Approved',
+  instructor_approved: 'Awaiting Admin Approval',
+  adviser_approved: 'Awaiting Admin Approval',
   recommended: 'Awaiting Admin Approval',
   approved: 'Admin Approved',
   published: 'Published',
   rejected: 'Rejected',
   archived: 'Archived',
+  undecided: 'Draft Review',
 });

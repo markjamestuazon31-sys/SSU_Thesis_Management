@@ -1,8 +1,8 @@
 /* User Management directory and filters v8.3 */
-.user-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.user-summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:18px}
 .user-summary-card{position:relative;overflow:hidden;display:grid;gap:5px;padding:18px 19px;border:1px solid #dce5ed;border-radius:14px;background:#fff;box-shadow:0 8px 20px rgba(26,53,78,.045)}
 .user-summary-card:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:#7891a5}
-.user-summary-card.student:before{background:#2b6f9f}.user-summary-card.adviser:before{background:#6b4cb1}.user-summary-card.active:before{background:#18825f}
+.user-summary-card.student:before{background:#2b6f9f}.user-summary-card.instructor:before{background:#6b4cb1}.user-summary-card.chair:before{background:#1f6d9f}.user-summary-card.active:before{background:#18825f}
 .user-summary-card>span{font-size:10px;font-weight:850;letter-spacing:.075em;text-transform:uppercase;color:#738496}
 .user-summary-card>strong{font-size:28px;line-height:1;color:#173b5a;letter-spacing:-.03em}
 .user-summary-card>small{font-size:10px;color:#8796a4}

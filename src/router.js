@@ -20,6 +20,10 @@ import * as studentHistory from './pages/student/history.js';
 import * as assigned from './pages/adviser/assigned.js';
 import * as review from './pages/adviser/review.js';
 import * as adviserHistory from './pages/adviser/history.js';
+import * as programChairRecords from './pages/program-chair/records.js';
+import * as programChairDetail from './pages/program-chair/detail.js';
+import * as programChairProgress from './pages/program-chair/progress.js';
+import * as programChairReports from './pages/program-chair/reports.js';
 import * as users from './pages/admin/users.js';
 import * as assignments from './pages/admin/assignments.js';
 import * as workflow from './pages/admin/workflow.js';
@@ -38,16 +42,24 @@ const routes = [
   // Published repository records are public. Manuscript access follows the repository file rules.
   { pattern: /^\/repository\/([^/]+)$/, page: repositoryDetail, public: true, keys: ['id'] },
   { pattern: /^\/configuration$/, page: configuration, public: true },
-  { pattern: /^\/dashboard$/, page: dashboard, roles: ['student', 'adviser', 'admin'] },
-  { pattern: /^\/notifications$/, page: notifications, roles: ['student', 'adviser', 'admin'] },
-  { pattern: /^\/profile$/, page: profilePage, roles: ['student', 'adviser', 'admin'] },
+  { pattern: /^\/dashboard$/, page: dashboard, roles: ['student', 'research_instructor', 'adviser', 'program_chair', 'admin'] },
+  { pattern: /^\/notifications$/, page: notifications, roles: ['student', 'research_instructor', 'adviser', 'program_chair', 'admin'] },
+  { pattern: /^\/profile$/, page: profilePage, roles: ['student', 'research_instructor', 'adviser', 'program_chair', 'admin'] },
   { pattern: /^\/student\/theses$/, page: myTheses, roles: ['student'] },
   { pattern: /^\/student\/submit$/, page: submit, roles: ['student'] },
   { pattern: /^\/student\/thesis\/([^/]+)$/, page: studentThesis, roles: ['student'], keys: ['id'] },
   { pattern: /^\/student\/history$/, page: studentHistory, roles: ['student'] },
-  { pattern: /^\/adviser\/assigned$/, page: assigned, roles: ['adviser'] },
-  { pattern: /^\/adviser\/review\/([^/]+)$/, page: review, roles: ['adviser'], keys: ['id'] },
-  { pattern: /^\/adviser\/history$/, page: adviserHistory, roles: ['adviser'] },
+  { pattern: /^\/research-instructor\/assigned$/, page: assigned, roles: ['research_instructor', 'adviser'] },
+  { pattern: /^\/research-instructor\/review\/([^/]+)$/, page: review, roles: ['research_instructor', 'adviser'], keys: ['id'] },
+  { pattern: /^\/research-instructor\/history$/, page: adviserHistory, roles: ['research_instructor', 'adviser'] },
+  // Legacy adviser URLs remain valid for existing bookmarks and accounts.
+  { pattern: /^\/adviser\/assigned$/, page: assigned, roles: ['research_instructor', 'adviser'] },
+  { pattern: /^\/adviser\/review\/([^/]+)$/, page: review, roles: ['research_instructor', 'adviser'], keys: ['id'] },
+  { pattern: /^\/adviser\/history$/, page: adviserHistory, roles: ['research_instructor', 'adviser'] },
+  { pattern: /^\/program-chair\/research$/, page: programChairRecords, roles: ['program_chair'] },
+  { pattern: /^\/program-chair\/research\/([^/]+)$/, page: programChairDetail, roles: ['program_chair'], keys: ['id'] },
+  { pattern: /^\/program-chair\/progress$/, page: programChairProgress, roles: ['program_chair'] },
+  { pattern: /^\/program-chair\/reports$/, page: programChairReports, roles: ['program_chair'] },
   { pattern: /^\/admin\/users$/, page: users, roles: ['admin'] },
   { pattern: /^\/admin\/assignments$/, page: assignments, roles: ['admin'] },
   { pattern: /^\/admin\/workflow$/, page: workflow, roles: ['admin'] },
@@ -161,30 +173,6 @@ export async function renderRoute() {
   } catch (error) {
     console.error(error);
     const message = String(error?.message || error || 'Unknown error');
-    const missingIndex = /Index not defined/i.test(message) || /\.indexOn/i.test(message);
-
-    if (missingIndex) {
-      root.innerHTML = `
-        <div class="config-page">
-          <div class="config-card">
-            <p class="eyebrow">Firebase Rules Update Required</p>
-            <h1>Realtime Database index is not deployed</h1>
-            <p>Your application code is working, but the Firebase Realtime Database rules currently published in the Firebase Console are older than this project.</p>
-            <div class="setup-note">
-              <strong>Required index for thesis records</strong>
-              <code>".indexOn": ["ownerUid", "adviserUid", "status"]</code>
-            </div>
-            <p>Publish the included <strong>database.rules.json</strong> to Firebase Realtime Database, then refresh this page.</p>
-            <div class="button-row">
-              <button class="btn btn-primary" type="button" onclick="location.reload()">Retry dashboard</button>
-              <a class="btn btn-secondary" href="#/repository">Public repository</a>
-            </div>
-            <details class="error-details"><summary>Technical details</summary><pre>${escapeForHtml(message)}</pre></details>
-          </div>
-        </div>`;
-      return;
-    }
-
     root.innerHTML = `<div class="config-page"><div class="config-card"><p class="eyebrow">Application Error</p><h1>Unable to load this page</h1><p>${escapeForHtml(message)}</p><a class="btn btn-primary" href="#/repository">Return to repository</a></div></div>`;
   }
 }

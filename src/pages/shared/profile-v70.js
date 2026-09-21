@@ -30,7 +30,8 @@ function profilePhotoMarkup(profile, adminInstitutional = false) {
 
 function roleLabel(role) {
   if (role === 'admin') return 'System Administrator';
-  if (role === 'adviser') return 'Thesis Adviser';
+  if (role === 'research_instructor' || role === 'adviser') return 'Research Instructor';
+  if (role === 'program_chair') return 'Program Chair';
   return 'Student Researcher';
 }
 
@@ -39,7 +40,7 @@ function programOptions(selected) {
 }
 
 export async function render({ profile }) {
-  const canUploadPhoto = ['student', 'adviser', 'admin'].includes(profile.role);
+  const canUploadPhoto = ['student', 'research_instructor', 'adviser', 'program_chair', 'admin'].includes(profile.role);
   const idLabel = profile.role === 'student' ? 'Student ID' : 'Employee ID';
   const idName = profile.role === 'student' ? 'studentId' : 'employeeId';
   const idValue = profile.role === 'student' ? profile.studentId : profile.employeeId;
@@ -48,7 +49,7 @@ export async function render({ profile }) {
     <div class="form-grid two">
       <label class="field">
         <span>Program</span>
-        <select name="program" required>
+        <select name="program" required disabled>
           ${programOptions(profile.program || '')}
         </select>
       </label>
@@ -67,13 +68,17 @@ export async function render({ profile }) {
         <input value="${escapeHtml(profile.researchYear || 'Not recorded')}" disabled>
       </label>
     </div>
-    <small>The registered research title and year cannot be changed from the profile because this pair is used to prevent duplicate accounts.</small>` : '';
+    <div class="form-grid two">
+      <label class="field"><span>Assigned Research Instructor</span><input value="${escapeHtml(profile.researchInstructorName || profile.adviserName || 'Not assigned')}" disabled></label>
+      <label class="field"><span>Program assignment</span><input value="Controlled by the administrator" disabled></label>
+    </div>
+    <small>The program, Research Instructor, registered research title, and year cannot be changed from this profile because they control research routing and duplicate-account validation.</small>` : '';
 
-  const adviserDepartment = profile.role === 'adviser' ? `
+  const staffDepartment = ['research_instructor', 'adviser', 'program_chair'].includes(profile.role) ? `
     <div class="form-grid two">
       <label class="field">
-        <span>Department / College</span>
-        <input value="College of Arts and Sciences" disabled>
+        <span>Assigned Program</span>
+        <input value="${escapeHtml(profile.program || 'Not assigned')}" disabled>
       </label>
       <label class="field">
         <span>Account status</span>
@@ -134,7 +139,7 @@ export async function render({ profile }) {
               <label class="field"><span>Role</span><input value="${escapeHtml(roleLabel(profile.role))}" disabled></label>
             </div>
             ${studentFields}
-            ${adviserDepartment}
+            ${staffDepartment}
             ${adminDepartment}
             <div class="form-actions"><button class="btn btn-primary" type="submit">Save profile</button></div>
           </form>

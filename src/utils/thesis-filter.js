@@ -1,36 +1,32 @@
+import { STATUS_LABELS } from '../config/app.config.js';
 import { escapeHtml } from './dom.js';
 import { titleCase } from './format.js';
 
-const ADVISER_PRIORITY = Object.freeze({
+const INSTRUCTOR_PRIORITY = Object.freeze({
   needs_review: new Set(['submitted', 'under_review']),
   revision_pending: new Set(['revision_required']),
-  completed: new Set(['adviser_approved', 'recommended', 'approved', 'published', 'rejected', 'archived']),
+  completed: new Set(['instructor_approved', 'adviser_approved', 'recommended', 'approved', 'published', 'rejected', 'archived']),
 });
 
 const normalized = (value) => String(value ?? '').trim().toLowerCase();
-const adviserToken = (row) => String(row.adviserUid || normalized(row.adviserName));
+const instructorToken = (row) => String(row.researchInstructorUid || row.adviserUid || normalized(row.researchInstructorName || row.adviserName));
 
 function uniqueValues(rows, getter, sorter = (a, b) => a.localeCompare(b)) {
   return [...new Set(rows.map(getter).filter(Boolean))].sort(sorter);
 }
-
-function optionList(values) {
-  return values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
-}
-
+function optionList(values) { return values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join(''); }
 function statusOptions(rows, statusLabels = {}) {
   return uniqueValues(rows, (row) => String(row.status || ''))
-    .map((status) => `<option value="${escapeHtml(status)}">${escapeHtml(statusLabels[status] || titleCase(status))}</option>`)
+    .map((status) => `<option value="${escapeHtml(status)}">${escapeHtml(statusLabels[status] || STATUS_LABELS[status] || titleCase(status))}</option>`)
     .join('');
 }
-
-function adviserOptions(rows) {
-  const advisers = new Map();
+function instructorOptions(rows) {
+  const instructors = new Map();
   rows.forEach((row) => {
-    const token = adviserToken(row);
-    if (token) advisers.set(token, row.adviserName || 'Unassigned adviser');
+    const token = instructorToken(row);
+    if (token) instructors.set(token, row.researchInstructorName || row.adviserName || 'Unassigned Research Instructor');
   });
-  return [...advisers.entries()]
+  return [...instructors.entries()]
     .sort((a, b) => a[1].localeCompare(b[1]))
     .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
     .join('');
@@ -39,6 +35,7 @@ function adviserOptions(rows) {
 export function renderThesisFilters(rows, {
   prefix,
   includeAdviser = false,
+  includeResearchInstructor = false,
   includePriority = false,
   heading = 'Filter research records',
   description = 'Search and narrow records by course, research year, and workflow status.',
@@ -46,18 +43,19 @@ export function renderThesisFilters(rows, {
 } = {}) {
   const programs = uniqueValues(rows, (row) => String(row.program || ''));
   const years = uniqueValues(rows, (row) => row.year ? String(row.year) : '', (a, b) => Number(b) - Number(a));
+  const includeInstructor = includeResearchInstructor || includeAdviser;
 
   return `<section class="panel research-filter-panel">
     <div class="panel-header research-filter-header">
       <div><p class="eyebrow">Record filters</p><h2>${escapeHtml(heading)}</h2><p>${escapeHtml(description)}</p></div>
       <div class="research-filter-result"><strong id="${prefix}-count">${rows.length}</strong><span>record${rows.length === 1 ? '' : 's'} shown</span></div>
     </div>
-    <div class="panel-body research-filter-grid ${includeAdviser || includePriority ? 'research-filter-grid-wide' : ''}">
+    <div class="panel-body research-filter-grid ${includeInstructor || includePriority ? 'research-filter-grid-wide' : ''}">
       <label class="field research-filter-search"><span>Search</span><input id="${prefix}-search" type="search" placeholder="Title, student, researcher, keyword..." autocomplete="off"></label>
       <label class="field"><span>Course / Program</span><select id="${prefix}-program"><option value="">All courses</option>${optionList(programs)}</select></label>
       <label class="field"><span>Research Year</span><select id="${prefix}-year"><option value="">All years</option>${optionList(years)}</select></label>
       <label class="field"><span>Status</span><select id="${prefix}-status"><option value="">All statuses</option>${statusOptions(rows, statusLabels)}</select></label>
-      ${includeAdviser ? `<label class="field"><span>Adviser</span><select id="${prefix}-adviser"><option value="">All advisers</option>${adviserOptions(rows)}</select></label>` : ''}
+      ${includeInstructor ? `<label class="field"><span>Research Instructor</span><select id="${prefix}-adviser"><option value="">All Research Instructors</option>${instructorOptions(rows)}</select></label>` : ''}
       ${includePriority ? `<label class="field"><span>Review Priority</span><select id="${prefix}-priority"><option value="">All assigned research</option><option value="needs_review">Needs my review</option><option value="revision_pending">Student revision pending</option><option value="completed">Review completed</option></select></label>` : ''}
       <button class="btn btn-secondary research-filter-clear" id="${prefix}-clear" type="button">Clear filters</button>
     </div>
@@ -78,13 +76,13 @@ export function readThesisFilters(prefix) {
 
 export function filterTheses(rows, filters = {}) {
   return rows.filter((row) => {
-    const haystack = normalized([row.title, row.studentName, row.ownerName, row.authors, row.program, row.adviserName, row.keywords, row.academicYear, row.year, row.status].join(' '));
+    const haystack = normalized([row.title, row.studentName, row.ownerName, row.authors, row.program, row.researchInstructorName, row.adviserName, row.programChairName, row.keywords, row.academicYear, row.year, row.status].join(' '));
     if (filters.search && !haystack.includes(normalized(filters.search))) return false;
     if (filters.program && String(row.program || '') !== filters.program) return false;
     if (filters.year && String(row.year || '') !== filters.year) return false;
     if (filters.status && String(row.status || '') !== filters.status) return false;
-    if (filters.adviser && adviserToken(row) !== filters.adviser) return false;
-    if (filters.priority && !ADVISER_PRIORITY[filters.priority]?.has(row.status)) return false;
+    if (filters.adviser && instructorToken(row) !== filters.adviser) return false;
+    if (filters.priority && !INSTRUCTOR_PRIORITY[filters.priority]?.has(row.status)) return false;
     return true;
   });
 }
@@ -114,7 +112,9 @@ export function updateThesisFilterCount(prefix, count) {
   if (node) node.textContent = String(count);
 }
 
-export function sortForAdviserReview(rows) {
-  const priority = (status) => ADVISER_PRIORITY.needs_review.has(status) ? 0 : ADVISER_PRIORITY.revision_pending.has(status) ? 1 : 2;
+export function sortForResearchInstructorReview(rows) {
+  const priority = (status) => INSTRUCTOR_PRIORITY.needs_review.has(status) ? 0 : INSTRUCTOR_PRIORITY.revision_pending.has(status) ? 1 : 2;
   return [...rows].sort((a, b) => priority(a.status) - priority(b.status) || (b.updatedAt || 0) - (a.updatedAt || 0));
 }
+
+export const sortForAdviserReview = sortForResearchInstructorReview;

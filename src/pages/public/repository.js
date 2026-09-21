@@ -130,7 +130,7 @@ function researchCard(research) {
   const title = research.title || 'Untitled Research';
   const authors = research.authors || research.studentName || 'Author not specified';
   const program = research.program || 'Program not specified';
-  const adviser = research.adviserName || '—';
+  const adviser = research.researchInstructorName || research.adviserName || '—';
   const year = String(research.year || '—');
   const abstract = String(research.abstract || '').trim();
   const publishedAt = Number(research.publishedAt || 0);
@@ -171,7 +171,7 @@ function researchCard(research) {
           <div class="repo75-meta">
             <span>${icon('file', 15)} ${escapeHtml(program)}</span>
             <i aria-hidden="true"></i>
-            <span>${icon('user', 15)} Adviser: ${escapeHtml(adviser)}</span>
+            <span>${icon('user', 15)} Research Instructor: ${escapeHtml(adviser)}</span>
           </div>
 
           <p class="repo75-abstract">
@@ -206,7 +206,7 @@ function programCounts(rows) {
 function adviserOptions(rows) {
   return [...new Set(
     rows
-      .map((row) => String(row.adviserName || '').trim())
+      .map((row) => String(row.researchInstructorName || row.adviserName || '').trim())
       .filter(Boolean)
   )].sort((a, b) => a.localeCompare(b));
 }
@@ -392,10 +392,10 @@ export async function render({ currentUser } = {}) {
                   </section>
 
                   <section class="repo75-filter-group">
-                    <label for="adviser-filter">Adviser</label>
+                    <label for="adviser-filter">Research Instructor</label>
                     <div class="repo75-select-wrap">
                       <select id="adviser-filter">
-                        <option value="">All Advisers</option>
+                        <option value="">All Research Instructors</option>
                         ${advisers.map((adviser) => `
                           <option value="${escapeHtml(adviser.toLowerCase())}">
                             ${escapeHtml(adviser)}
@@ -486,7 +486,7 @@ function updateActiveFilterChips() {
 
   if (adviser) {
     const option = document.getElementById('adviser-filter')?.selectedOptions?.[0];
-    chips.push(`<span>${icon('user', 12)} Adviser: ${escapeHtml(option?.textContent?.trim() || adviser)}</span>`);
+    chips.push(`<span>${icon('user', 12)} Research Instructor: ${escapeHtml(option?.textContent?.trim() || adviser)}</span>`);
   }
 
   container.innerHTML = chips.join('');
@@ -504,12 +504,12 @@ function filterRows() {
       row.authors || row.studentName || '',
       row.program || '',
       row.keywords || '',
-      row.adviserName || '',
+      row.researchInstructorName || row.adviserName || '',
       row.abstract || '',
     ].join(' ').toLowerCase();
 
     const rowProgram = String(row.program || '').toLowerCase();
-    const rowAdviser = String(row.adviserName || '').toLowerCase();
+    const rowAdviser = String(row.researchInstructorName || row.adviserName || '').toLowerCase();
     const rowYear = Number(row.year || 0);
 
     const matchesSearch = !search || text.includes(search);

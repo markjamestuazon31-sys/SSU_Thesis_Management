@@ -12,7 +12,7 @@ import {
 import '../../styles/admin-thesis-review-v74.css';
 import '../../styles/research-record-filters-v77.css';
 
-const REVIEW_STATUSES = new Set(['adviser_approved', 'recommended']);
+const REVIEW_STATUSES = new Set(['instructor_approved', 'adviser_approved', 'recommended']);
 const FILTER_PREFIX = 'admin-submissions';
 let allSubmissionRows = [];
 let visibleSubmissionRows = [];
@@ -22,7 +22,7 @@ function submissionTable(rows) {
     showOwner: true,
     showProgram: true,
     showYear: true,
-    showAdviser: true,
+    showResearchInstructor: true,
     actionLabel: 'View record',
     actionRoute: (id) => `/admin/thesis/${id}`,
     statusLabels: { published: 'Uploaded Thesis' },
@@ -30,10 +30,10 @@ function submissionTable(rows) {
 }
 
 function exportFilteredSubmissions() {
-  const header = ['Title', 'Student / Researchers', 'Submitted By', 'Course / Program', 'Research Year', 'Academic Year', 'Adviser', 'Status'];
+  const header = ['Title', 'Student / Researchers', 'Submitted By', 'Course / Program', 'Research Year', 'Academic Year', 'Research Instructor', 'Program Chair', 'Status'];
   const lines = [
     header.map(csvEscape).join(','),
-    ...visibleSubmissionRows.map((thesis) => [thesis.title, thesis.authors || thesis.studentName, thesis.studentName, thesis.program, thesis.year, thesis.academicYear, thesis.adviserName, thesis.status].map(csvEscape).join(',')),
+    ...visibleSubmissionRows.map((thesis) => [thesis.title, thesis.authors || thesis.studentName, thesis.studentName, thesis.program, thesis.year, thesis.academicYear, thesis.researchInstructorName || thesis.adviserName, thesis.programChairName || '', thesis.status].map(csvEscape).join(',')),
   ];
   downloadText(lines.join('\n'), 'ssu-filtered-submissions.csv', 'text/csv;charset=utf-8');
 }
@@ -43,12 +43,12 @@ export async function render() {
   visibleSubmissionRows = [...allSubmissionRows];
   const reviewRows = allSubmissionRows
     .filter((thesis) => REVIEW_STATUSES.has(thesis.status))
-    .sort((a, b) => (b.updatedAt || b.adviserApprovedAt || 0) - (a.updatedAt || a.adviserApprovedAt || 0));
+    .sort((a, b) => (b.updatedAt || b.researchInstructorApprovedAt || b.adviserApprovedAt || 0) - (a.updatedAt || a.researchInstructorApprovedAt || a.adviserApprovedAt || 0));
   const inAdviserReview = allSubmissionRows.filter((item) => ['submitted', 'under_review'].includes(item.status)).length;
   const published = allSubmissionRows.filter((item) => item.status === 'published').length;
   const stats = [
     statCard({ label: 'All Submissions', value: String(allSubmissionRows.length), iconName: 'file', helper: 'Across all courses' }),
-    statCard({ label: 'With Advisers', value: String(inAdviserReview), iconName: 'review', helper: 'Currently under review' }),
+    statCard({ label: 'With Instructors', value: String(inAdviserReview), iconName: 'review', helper: 'Currently under review' }),
     statCard({ label: 'Awaiting Admin', value: String(reviewRows.length), iconName: 'check', helper: 'Ready for final decision' }),
     statCard({ label: 'Uploaded Thesis', value: String(published), iconName: 'repository', helper: 'Available in repository' }),
   ];
@@ -61,17 +61,17 @@ export async function render() {
   <div class="stats-grid adviser-workspace-stats">${stats.join('')}</div>
   <section class="admin-review-summary">
     <article class="admin-review-summary-card"><span class="admin-review-summary-icon">${icon('review', 20)}</span><div><span>Awaiting Admin Review</span><strong>${reviewRows.length}</strong></div></article>
-    <div class="admin-review-flow"><span>${icon('upload', 14)} Student Submission</span><i>→</i><span>${icon('check', 14)} Adviser Approval</span><i>→</i><strong>${icon('review', 14)} Admin Review</strong><i>→</i><span>${icon('repository', 14)} Uploaded Thesis</span></div>
+    <div class="admin-review-flow"><span>${icon('upload', 14)} Student Submission</span><i>→</i><span>${icon('check', 14)} Research Instructor</span><i>→</i><span>${icon('users', 14)} Program Chair Monitoring</span><i>→</i><strong>${icon('review', 14)} Admin Approval</strong><i>→</i><span>${icon('repository', 14)} Repository</span></div>
   </section>
   <section class="panel admin-thesis-review-panel">
-    <div class="panel-header"><div><p class="eyebrow">Final Approval Queue</p><h2>Research awaiting administrator decision</h2><p>Only adviser-approved research appears here for final verification and thesis upload.</p></div></div>
-    <div class="panel-body no-pad">${reviewRows.length ? thesisTable(reviewRows, { showOwner: true, showProgram: true, showYear: true, showAdviser: true, actionLabel: 'Final review', actionRoute: (id) => `/admin/thesis/${id}`, statusLabels: { published: 'Uploaded Thesis' } }) : emptyState('No thesis is awaiting final review', 'Research will appear here after an adviser approves and forwards it to the administrator.')}</div>
+    <div class="panel-header"><div><p class="eyebrow">Final Approval Queue</p><h2>Research awaiting administrator decision</h2><p>Only Research Instructor-approved research appears here for final administrator verification and thesis upload. Program Chair access is monitoring only.</p></div></div>
+    <div class="panel-body no-pad">${reviewRows.length ? thesisTable(reviewRows, { showOwner: true, showProgram: true, showYear: true, showResearchInstructor: true, actionLabel: 'Final review', actionRoute: (id) => `/admin/thesis/${id}`, statusLabels: { published: 'Uploaded Thesis' } }) : emptyState('No thesis is awaiting final review', 'Research will appear here after the Research Instructor approves it. The Program Chair receives read-only monitoring access while the administrator performs final approval.')}</div>
   </section>
   ${renderThesisFilters(allSubmissionRows, {
     prefix: FILTER_PREFIX,
-    includeAdviser: true,
+    includeResearchInstructor: true,
     heading: 'Monitor all student submissions',
-    description: 'See who submitted, their course, research year, selected adviser, and current workflow status.',
+    description: 'See who submitted, their course, research year, assigned Research Instructor, and current workflow status.',
     statusLabels: { published: 'Uploaded Thesis' },
   })}
   <section class="panel research-monitor-panel">

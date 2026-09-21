@@ -13,7 +13,7 @@ const FILTER_PREFIX = 'adviser-research';
 let assignedRows = [];
 
 const needsReview = (item) => ['submitted', 'under_review'].includes(item.status);
-const completedReview = (item) => ['adviser_approved', 'recommended', 'approved', 'published', 'rejected'].includes(item.status);
+const completedReview = (item) => ['instructor_approved', 'adviser_approved', 'recommended', 'approved', 'published', 'rejected'].includes(item.status);
 
 function assignedTable(rows) {
   return thesisTable(rows, {
@@ -21,7 +21,7 @@ function assignedTable(rows) {
     showProgram: true,
     showYear: true,
     actionLabel: (item) => needsReview(item) ? 'Review now' : 'Open record',
-    actionRoute: (id) => `/adviser/review/${id}`,
+    actionRoute: (id) => `/research-instructor/review/${id}`,
   });
 }
 
@@ -34,7 +34,7 @@ export async function render({ profile }) {
     statCard({ label: 'Reviews Completed', value: String(assignedRows.filter(completedReview).length), iconName: 'check', helper: 'Decisions recorded' }),
   ];
 
-  return `${pageHeader('Research Submitted to Me', 'Review and monitor manuscripts from students who selected you as their thesis adviser.')}
+  return `${pageHeader('Research Submitted to Me', 'Review and monitor manuscripts from students assigned to you as their Research Instructor.')}
   <div class="stats-grid adviser-workspace-stats">${stats.join('')}</div>
   ${renderThesisFilters(assignedRows, {
     prefix: FILTER_PREFIX,
@@ -44,7 +44,7 @@ export async function render({ profile }) {
   })}
   <section class="panel research-monitor-panel">
     <div class="panel-header">
-      <div><p class="eyebrow">Adviser review workspace</p><h2>Assigned submissions</h2><p>Items that need an adviser decision are automatically listed first.</p></div>
+      <div><p class="eyebrow">Research Instructor review workspace</p><h2>Assigned submissions</h2><p>Items that need an Research Instructor decision are automatically listed first.</p></div>
       <span class="research-monitor-meta" id="adviser-visible-label">${assignedRows.length} visible</span>
     </div>
     <div class="panel-body no-pad" id="adviser-research-table">${assignedTable(assignedRows)}</div>

@@ -31,7 +31,7 @@ function reviewedFileMarkup(review, metadata, { compact = false } = {}) {
   return `<div class="review-attachment-v80 ${compact ? 'admin-review-file-v80' : ''}">
     <div class="review-file-icon-v80 review-file-icon-v80--small">${icon('file', 19)}</div>
     <div>
-      <span>Adviser reviewed copy</span>
+      <span>Research Instructor reviewed copy</span>
       <strong>${escapeHtml(metadata?.name || 'Reviewed manuscript')}</strong>
       <small>${metadata?.size ? `${escapeHtml(formatBytes(Number(metadata.size)))} · ` : ''}${escapeHtml(typeLabel(metadata))}</small>
     </div>
@@ -40,14 +40,14 @@ function reviewedFileMarkup(review, metadata, { compact = false } = {}) {
 }
 
 function reviewTimeline(reviews, files) {
-  if (!reviews.length) return emptyState('No reviews yet', 'Adviser feedback will appear here after your manuscript is reviewed.');
+  if (!reviews.length) return emptyState('No reviews yet', 'Research Instructor feedback will appear here after your manuscript is reviewed.');
   return reviews.map((review) => {
     const level = review.revisionLevel === 'major' ? 'Major Revision' : review.revisionLevel === 'minor' ? 'Minor Revision' : '';
     return `<article class="timeline-item review-history-item-v80">
       <div class="timeline-dot"></div>
       <div>
         <div class="timeline-head">
-          <div><strong>${escapeHtml(review.adviserName || 'Adviser')}</strong><span class="review-version-v80">Version ${escapeHtml(String(review.sourceVersion || '—'))}</span></div>
+          <div><strong>${escapeHtml(review.researchInstructorName || review.adviserName || 'Research Instructor')}</strong><span class="review-version-v80">Version ${escapeHtml(String(review.sourceVersion || '—'))}</span></div>
           ${statusBadge(review.decision)}
         </div>
         ${level ? `<span class="review-level-v80 review-level-v80--${escapeHtml(review.revisionLevel)}">${escapeHtml(level)}</span>` : ''}
@@ -103,7 +103,7 @@ export async function render({ profile, params }) {
 
   return `${pageHeader(
     thesis.title,
-    'Track every manuscript version, adviser decision, reviewed copy, and revision submission in one record.',
+    'Track every manuscript version, Research Instructor decision, reviewed copy, and revision submission in one record.',
     `<button class="btn btn-secondary" type="button" data-file-download="${escapeHtml(thesis.currentFileId || '')}" ${currentMetadata?.status === 'ready' ? '' : 'disabled'}>${icon('download')} Download Current Manuscript</button>`,
   )}
 
@@ -112,7 +112,7 @@ export async function render({ profile, params }) {
       ${icon('edit', 22)}
       <div>
         <strong>${latestRevision.revisionLevel === 'major' ? 'Major revision requested' : 'Revision requested'} for Version ${escapeHtml(String(latestRevision.sourceVersion || thesis.version || 1))}</strong>
-        <p>Download the adviser’s reviewed copy, apply the comments or Track Changes, then upload your corrected manuscript as the next version.</p>
+        <p>Download the Research Instructor’s reviewed copy, apply the comments or Track Changes, then upload your corrected manuscript as the next version.</p>
       </div>
     </div>
     ${latestRevision.reviewedFileId ? `<button class="btn btn-primary" type="button" data-file-download="${escapeHtml(latestRevision.reviewedFileId)}" ${latestReviewedMetadata?.status === 'ready' ? '' : 'disabled'}>${icon('download', 16)} Download Reviewed Copy</button>` : ''}
@@ -126,7 +126,7 @@ export async function render({ profile, params }) {
           ${infoRow('Authors', thesis.authors || thesis.studentName)}
           ${infoRow('Program', thesis.program)}
           ${infoRow('Research Year', thesis.year)}
-          ${infoRow('Adviser', thesis.adviserName || 'Unassigned')}
+          ${infoRow('Research Instructor', thesis.researchInstructorName || thesis.adviserName || 'Unassigned')}
           ${infoRow('Academic Year', thesis.academicYear)}
           ${infoRow('Current Version', String(thesis.version || 1))}
           ${infoRow('Last updated', formatDateTime(thesis.updatedAt))}
@@ -136,7 +136,7 @@ export async function render({ profile, params }) {
       </div>
     </section>
     <aside class="panel">
-      <div class="panel-header"><div><h2>Adviser feedback</h2><p>Reviewed manuscript files are attached to the exact version reviewed.</p></div></div>
+      <div class="panel-header"><div><h2>Research Instructor feedback</h2><p>Reviewed manuscript files are attached to the exact version reviewed.</p></div></div>
       <div class="panel-body timeline">${reviewTimeline(reviews, fileMap)}</div>
     </aside>
   </div>
@@ -145,14 +145,14 @@ export async function render({ profile, params }) {
     <div class="panel-header"><div><p class="eyebrow">Revision workflow</p><h2>Submit revised manuscript</h2><p>Do not overwrite the previous file. Your corrected manuscript will be stored as Version ${Number(thesis.version || 1) + 1}.</p></div></div>
     <div class="panel-body">
       <div class="student-review-guide-v80">
-        <div><span>1</span><div><strong>Download reviewed copy</strong><small>Read the adviser’s comments, Track Changes, or PDF annotations.</small></div></div>
+        <div><span>1</span><div><strong>Download reviewed copy</strong><small>Read the Research Instructor’s comments, Track Changes, or PDF annotations.</small></div></div>
         <div><span>2</span><div><strong>Apply corrections</strong><small>Edit your own working manuscript outside the website.</small></div></div>
-        <div><span>3</span><div><strong>Upload next version</strong><small>The previous student and adviser files remain in history.</small></div></div>
+        <div><span>3</span><div><strong>Upload next version</strong><small>The previous student and Research Instructor files remain in history.</small></div></div>
       </div>
       ${latestRevision ? reviewedFileMarkup(latestRevision, latestReviewedMetadata) : ''}
       <form id="resubmit-form" class="form-stack" style="margin-top:16px">
         <label class="field"><span>Revised PDF or DOCX</span><input id="revision-file" type="file" accept=".pdf,.docx" required><small>Maximum ${maxFileSizeMb} MB</small></label>
-        <label class="field"><span>Revision note</span><textarea name="note" rows="3" required placeholder="Briefly explain the corrections you completed for the adviser."></textarea></label>
+        <label class="field"><span>Revision note</span><textarea name="note" rows="3" required placeholder="Briefly explain the corrections you completed for the Research Instructor."></textarea></label>
         <div class="upload-progress" id="upload-progress" hidden><div><span>Uploading revision</span><strong id="upload-percent">0%</strong></div><div class="progress-track"><span id="progress-bar"></span></div></div>
         <button class="btn btn-primary" type="submit">Submit Version ${Number(thesis.version || 1) + 1}</button>
       </form>

@@ -12,7 +12,7 @@ export async function render({ profile }) {
     row.studentName = thesis?.studentName || '—';
   }
 
-  return `${pageHeader('Review History', 'A chronological audit trail of final adviser decisions. Draft reviews are not shown here.')}
+  return `${pageHeader('Review History', 'A chronological audit trail of final Research Instructor decisions. Draft reviews are not shown here.')}
   <section class="panel"><div class="panel-body timeline">
     ${rows.length ? rows.map((row) => {
       const level = row.revisionLevel === 'major' ? 'Major revision' : row.revisionLevel === 'minor' ? 'Minor revision' : '';
@@ -20,7 +20,7 @@ export async function render({ profile }) {
         <div class="timeline-head"><strong>${escapeHtml(row.title)}</strong>${statusBadge(row.decision)}</div>
         <p>${escapeHtml(row.comment || 'No written feedback.')}</p>
         <small>${escapeHtml(row.studentName)} · Version ${escapeHtml(String(row.sourceVersion || '—'))}${level ? ` · ${escapeHtml(level)}` : ''} · ${formatDateTime(row.createdAt)}</small>
-        <div><a class="text-link" href="#/adviser/review/${row.thesisId}">Open thesis record →</a></div>
+        <div><a class="text-link" href="#/research-instructor/review/${row.thesisId}">Open thesis record →</a></div>
       </div></article>`;
     }).join('') : emptyState('No review history', 'Final review decisions you submit will appear here.')}
   </div></section>`;

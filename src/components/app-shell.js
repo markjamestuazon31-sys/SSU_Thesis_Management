@@ -7,26 +7,33 @@ const commonBottom = [
   { href: '/notifications', label: 'Notifications', icon: 'bell' },
 ];
 
+const instructorLinks = [
+  { href: '/research-instructor/assigned', label: 'Research Submitted to Me', icon: 'file' },
+  { href: '/research-instructor/history', label: 'Review History', icon: 'review' },
+];
+
 const roleLinks = {
   student: [
     { href: '/student/theses', label: 'My Thesis Records', icon: 'file' },
     { href: '/student/submit', label: 'New Submission', icon: 'upload' },
     { href: '/student/history', label: 'Submission History', icon: 'clock' },
   ],
-  adviser: [
-    { href: '/adviser/assigned', label: 'Research Submitted to Me', icon: 'file' },
-    { href: '/adviser/history', label: 'Review History', icon: 'review' },
+  research_instructor: instructorLinks,
+  adviser: instructorLinks,
+  program_chair: [
+    { href: '/program-chair/research', label: 'Program Research Monitoring', icon: 'review' },
+    { href: '/program-chair/progress', label: 'Research Progress', icon: 'clock' },
+    { href: '/program-chair/reports', label: 'Program Reports', icon: 'chart' },
   ],
   admin: [
     { href: '/admin/users', label: 'User Management', icon: 'users' },
-    { href: '/admin/assignments', label: 'Adviser Directory', icon: 'review' },
+    { href: '/admin/assignments', label: 'Academic Staff Directory', icon: 'review' },
     { href: '/admin/workflow', label: 'Thesis Review', icon: 'review' },
     { href: '/admin/approved', label: 'Approved Thesis Records', icon: 'check' },
     { href: '/admin/archive', label: 'Records Archive', icon: 'archive' },
     { href: '/admin/reports', label: 'Reports & Analytics', icon: 'chart' },
   ],
 };
-
 
 function profileAvatar(profile, initials, sizeClass = '') {
   const photoUrl = String(profile?.profilePhotoUrl || '');
@@ -45,12 +52,28 @@ function nav(link, path) {
   </a>`;
 }
 
+function roleTitle(role) {
+  if (role === 'admin') return 'System Administrator';
+  if (role === 'research_instructor' || role === 'adviser') return 'Research Instructor';
+  if (role === 'program_chair') return 'Program Chair';
+  return 'Student Researcher';
+}
+
+function toolsLabel(role) {
+  if (role === 'admin') return 'Administration';
+  if (role === 'research_instructor' || role === 'adviser') return 'Research Instructor tools';
+  if (role === 'program_chair') return 'Program Chair tools';
+  return 'Student tools';
+}
+
 export function renderAppShell({ pageHtml, profile, currentPath }) {
   const role = profile?.role || 'student';
   const storedName = profile?.displayName || profile?.name || profile?.email || 'SSU User';
   const name = role === 'admin' ? 'CAS Thesis Administrator' : storedName;
   const initials = name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-  const roleTitle = role === 'admin' ? 'System Administrator' : role === 'adviser' ? 'Thesis Adviser' : 'Student Researcher';
+  const title = roleTitle(role);
+  const campusContext = role === 'program_chair' ? (profile?.program || 'Program not assigned') : 'Institutional Thesis Records';
+  const topbarContext = role === 'program_chair' ? (profile?.program || 'Program Research Monitoring') : 'Thesis Record Management System';
 
   return `<div class="app-shell">
     <aside class="sidebar" id="sidebar">
@@ -61,27 +84,25 @@ export function renderAppShell({ pageHtml, profile, currentPath }) {
 
       <div class="sidebar-campus-card">
         <span>College of Arts and Sciences</span>
-        <strong>Institutional Thesis Records</strong>
+        <strong>${escapeHtml(campusContext)}</strong>
         <small><i></i> Realtime Database online</small>
       </div>
 
       <div class="sidebar-label">Main workspace</div>
       <nav class="sidebar-nav">${commonTop.map((link) => nav(link, currentPath)).join('')}</nav>
 
-      <div class="sidebar-label">${role === 'admin' ? 'Administration' : role === 'adviser' ? 'Adviser tools' : 'Student tools'}</div>
+      <div class="sidebar-label">${toolsLabel(role)}</div>
       <nav class="sidebar-nav">${(roleLinks[role] || []).map((link) => nav(link, currentPath)).join('')}</nav>
 
       <div class="sidebar-label">Research access</div>
       <nav class="sidebar-nav">${commonBottom.map((link) => nav(link, currentPath)).join('')}</nav>
 
       <div class="sidebar-spacer"></div>
-      <nav class="sidebar-nav lower-nav">
-        ${nav({ href: '/profile', label: 'My Profile', icon: 'user' }, currentPath)}
-      </nav>
+      <nav class="sidebar-nav lower-nav">${nav({ href: '/profile', label: 'My Profile', icon: 'user' }, currentPath)}</nav>
 
       <div class="sidebar-user">
         ${profileAvatar(profile, initials)}
-        <div><strong>${escapeHtml(name)}</strong><span>${escapeHtml(roleTitle)}</span></div>
+        <div><strong>${escapeHtml(name)}</strong><span>${escapeHtml(title)}</span></div>
       </div>
     </aside>
 
@@ -89,12 +110,12 @@ export function renderAppShell({ pageHtml, profile, currentPath }) {
       <header class="topbar">
         <div class="topbar-left">
           <button class="icon-button mobile-menu" id="mobile-menu" type="button" aria-label="Open navigation">${icon('menu')}</button>
-          <div class="topbar-title"><span>College of Arts and Sciences</span><strong>Thesis Record Management System</strong></div>
+          <div class="topbar-title"><span>College of Arts and Sciences</span><strong>${escapeHtml(topbarContext)}</strong></div>
         </div>
         <div class="topbar-actions">
           <a class="topbar-repository-link" href="#/repository">${icon('repository', 16)} Repository</a>
           <a class="icon-button" href="#/notifications" aria-label="Notifications">${icon('bell')}</a>
-          <div class="topbar-profile">${profileAvatar(profile, initials, 'small')}<div><strong>${escapeHtml(name)}</strong><span>${escapeHtml(roleTitle)}</span></div></div>
+          <div class="topbar-profile">${profileAvatar(profile, initials, 'small')}<div><strong>${escapeHtml(name)}</strong><span>${escapeHtml(title)}</span></div></div>
           <button class="icon-button" id="logout-button" type="button" title="Sign out">${icon('logout')}</button>
         </div>
       </header>
@@ -119,7 +140,6 @@ export function bindShell({ onLogout }) {
 
   const closeNavigation = () => setNavigationOpen(false);
   const toggleNavigation = () => setNavigationOpen(!sidebar?.classList.contains('open'));
-
   menuButton?.setAttribute('aria-expanded', 'false');
   menuButton?.addEventListener('click', toggleNavigation);
   overlay?.addEventListener('click', closeNavigation);
@@ -130,13 +150,8 @@ export function bindShell({ onLogout }) {
     });
   });
 
-  const onKeyDown = (event) => {
-    if (event.key === 'Escape' && sidebar?.classList.contains('open')) closeNavigation();
-  };
-  const onResize = () => {
-    if (window.innerWidth > 900) closeNavigation();
-  };
-
+  const onKeyDown = (event) => { if (event.key === 'Escape' && sidebar?.classList.contains('open')) closeNavigation(); };
+  const onResize = () => { if (window.innerWidth > 900) closeNavigation(); };
   document.addEventListener('keydown', onKeyDown);
   window.addEventListener('resize', onResize, { passive: true });
   document.getElementById('logout-button')?.addEventListener('click', onLogout);

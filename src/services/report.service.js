@@ -5,6 +5,7 @@ const ACTIVE_WORKFLOW_STATUSES = new Set([
   'submitted',
   'under_review',
   'revision_required',
+  'instructor_approved',
   'adviser_approved',
   'recommended',
 ]);

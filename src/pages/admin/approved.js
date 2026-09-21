@@ -27,7 +27,7 @@ function table(rows) {
           <tr>
             <th>Research</th>
             <th>Student / Researchers</th>
-            <th>Adviser</th>
+            <th>Research Instructor</th>
             <th>Status</th>
             <th>Admin Approval</th>
             <th class="table-action-heading">Action</th>
@@ -37,7 +37,7 @@ function table(rows) {
           ${rows.map((item) => `
             <tr
               class="approved-thesis-row"
-              data-search="${escapeHtml(`${item.title || ''} ${item.studentName || ''} ${item.authors || ''} ${item.program || ''} ${item.adviserName || ''}`.toLowerCase())}"
+              data-search="${escapeHtml(`${item.title || ''} ${item.studentName || ''} ${item.authors || ''} ${item.program || ''} ${item.researchInstructorName || item.adviserName || ''}`.toLowerCase())}"
               data-program="${escapeHtml(String(item.program || '').toLowerCase())}"
             >
               <td>
@@ -45,7 +45,7 @@ function table(rows) {
                 <div class="table-subtitle">${escapeHtml(item.program || 'Program not specified')}</div>
               </td>
               <td>${escapeHtml(item.authors || item.studentName || item.ownerName || '—')}</td>
-              <td>${escapeHtml(item.adviserName || '—')}</td>
+              <td>${escapeHtml(item.researchInstructorName || item.adviserName || '—')}</td>
               <td>${statusBadge(item.status, item.status === 'published' ? 'Uploaded Thesis' : '')}</td>
               <td>${formatDate(approvedDate(item))}</td>
               <td class="table-action">
@@ -105,7 +105,7 @@ export async function render() {
             <input
               id="approved-search"
               type="search"
-              placeholder="Search title, researcher, adviser..."
+              placeholder="Search title, researcher, Research Instructor..."
               autocomplete="off"
             >
           </label>
@@ -126,7 +126,7 @@ export async function render() {
       <div class="approved-filter-empty" id="approved-filter-empty" hidden>
         ${icon('search', 28)}
         <h3>No matching approved thesis</h3>
-        <p>Try another title, researcher, adviser, or CAS program.</p>
+        <p>Try another title, researcher, Research Instructor, or CAS program.</p>
       </div>
     </section>`;
 }

@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 
 const rules = JSON.parse(fs.readFileSync(new URL('../database.rules.json', import.meta.url), 'utf8')).rules || {};
 const required = {
-  theses: ['ownerUid', 'adviserUid', 'status'],
+  theses: ['ownerUid', 'researchInstructorUid', 'adviserUid', 'program', 'programChairUid', 'status'],
+  researchInstructorDirectory: ['program', 'status'],
+  programChairDirectory: ['program', 'status'],
   isoEvaluations: ['uid'],
 };
 

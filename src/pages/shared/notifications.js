@@ -25,7 +25,7 @@ function notificationVisual(item = {}, role = '') {
     return { icon: 'review', tone: 'review', label: 'Review' };
   }
 
-  if (haystack.includes('assign') || haystack.includes('adviser')) {
+  if (haystack.includes('assign') || haystack.includes('instructor') || haystack.includes('adviser') || haystack.includes('program chair')) {
     return { icon: 'users', tone: 'assignment', label: 'Assignment' };
   }
 
@@ -93,7 +93,7 @@ export async function render({ profile }) {
     <div class="notification-page">
       ${pageHeader(
         'Notifications',
-        profile.role === 'admin' ? 'Stay updated on thesis reviews, adviser decisions, final approvals, and thesis uploads.' : 'Stay updated on thesis reviews, adviser decisions, final approvals, and repository publication.',
+        profile.role === 'admin' ? 'Stay updated on thesis reviews, Research Instructor decisions, final approvals, and thesis uploads.' : 'Stay updated on thesis reviews, Research Instructor decisions, final approvals, and repository publication.',
         actions
       )}
 

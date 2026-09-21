@@ -15,7 +15,7 @@ function requestedReturnPath() {
 export async function render() {
   return authLayout({
     title: 'Welcome back',
-    subtitle: 'One secure portal sign-in for students, advisers, and administrators.',
+    subtitle: 'One secure portal sign-in for students, Research Instructors, Program Chairs, and administrators.',
     content: `
       
 
@@ -39,7 +39,7 @@ export async function render() {
       <a class="btn btn-secondary btn-block" href="#/register">Create student account</a>
 
       <p class="auth-help-text" style="text-align:center;margin:14px 0 0;color:var(--muted, #667085);font-size:13px">
-        Administrator and adviser accounts do not register here. They use the same sign-in form above.
+        Research Instructor, Program Chair, and Administrator accounts do not register here. They use the same sign-in form above.
       </p>
 
       <a class="text-link centered" href="#/repository">← Back to public repository</a>`
@@ -58,7 +58,7 @@ export function mount() {
       const returnPath = requestedReturnPath();
 
       // All roles use one login. The shared /dashboard renders the correct
-      // role-specific workspace for student, adviser, or administrator.
+      // role-specific workspace for Student, Research Instructor, Program Chair, or Administrator.
       location.hash = `#${returnPath}`;
       toast(`Signed in as ${result.profile.role}.`, 'success');
     } catch (error) {

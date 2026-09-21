@@ -30,7 +30,8 @@ function profilePhotoMarkup(profile, adminInstitutional = false) {
 
 function roleLabel(role) {
   if (role === 'admin') return 'System Administrator';
-  if (role === 'adviser') return 'Thesis Adviser';
+  if (role === 'research_instructor' || role === 'adviser') return 'Research Instructor';
+  if (role === 'program_chair') return 'Program Chair';
   return 'Student Researcher';
 }
 
@@ -39,7 +40,7 @@ function programOptions(selected) {
 }
 
 export async function render({ profile }) {
-  const canUploadPhoto = ['student', 'adviser', 'admin'].includes(profile.role);
+  const canUploadPhoto = ['student', 'research_instructor', 'adviser', 'program_chair', 'admin'].includes(profile.role);
   const idLabel = profile.role === 'student' ? 'Student ID' : 'Employee ID';
   const idName = profile.role === 'student' ? 'studentId' : 'employeeId';
   const idValue = profile.role === 'student' ? profile.studentId : profile.employeeId;
@@ -58,7 +59,7 @@ export async function render({ profile }) {
       </label>
     </div>` : '';
 
-  const adviserDepartment = profile.role === 'adviser' ? `
+  const adviserDepartment = ['research_instructor', 'adviser', 'program_chair'].includes(profile.role) ? `
     <div class="form-grid two">
       <label class="field">
         <span>Department / College</span>
