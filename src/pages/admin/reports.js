@@ -86,7 +86,7 @@ function renderReportFilters(theses) {
       <label class="field"><span>Course / Program</span><select id="report-program" name="program"><option value="">All courses</option>${optionList(programs)}</select></label>
       <label class="field"><span>Research year</span><select id="report-year" name="year"><option value="">All research years</option>${optionList(years)}</select></label>
       <label class="field"><span>Academic year</span><select id="report-academic-year" name="academicYear"><option value="">All academic years</option>${optionList(academicYears)}</select></label>
-      <label class="field"><span>Status</span><select id="report-status" name="status"><option value="">All statuses</option>${optionList([...knownStatuses, ...unknownStatuses], statusLabel)}</select></label>
+      <label class="field"><span>Status</span><select id="report-status" name="status"><option value="">All status</option>${optionList([...knownStatuses, ...unknownStatuses], statusLabel)}</select></label>
       <div class="report-filter-footer">
         <div class="report-filter-tags" data-report-filter-tags>${activeFilterTags(activeFilters)}</div>
         <button class="report-clear-link" type="button" data-clear-report-filters>Clear all</button>

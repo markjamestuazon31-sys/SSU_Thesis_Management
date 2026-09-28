@@ -76,8 +76,8 @@ export async function render({ profile }) {
     <div class="panel-header dashboard-library-header">
       <div>
         <p class="eyebrow">Centralized repository</p>
-        <h2>${adminMode ? 'Uploaded Thesis Library' : 'Published Research Library'}</h2>
-        <p>${adminMode ? 'Search approved and uploaded CAS thesis records from one institutional repository.' : 'Search approved and published CAS research records from one institutional repository.'}</p>
+        <h2>${adminMode ? 'Uploaded Thesis Library' : 'Uploaded  Research Library'}</h2>
+        <p>${adminMode ? 'Search approved and uploaded CAS thesis records from one institutional repository.' : 'Search approved and Uploaded  CAS research records from one institutional repository.'}</p>
       </div>
       <div class="dashboard-library-tools">
         <div class="dashboard-research-search">
@@ -129,7 +129,7 @@ function workflowSummary(theses = [], role) {
         ['In review', ['submitted', 'under_review'], 'review'],
         ['Revision required', ['revision_required'], 'clock'],
         ['Awaiting admin approval', ['instructor_approved', 'adviser_approved', 'recommended'], 'check'],
-        ['Uploaded Thesis', ['published'], 'repository'],
+        ['Uploaded Research', ['Uploaded'], 'repository'],
       ]
     : role === 'program_chair'
       ? [
@@ -142,7 +142,7 @@ function workflowSummary(theses = [], role) {
           ['In review', ['submitted', 'under_review'], 'review'],
           ['Revision required', ['revision_required'], 'clock'],
           ['Instructor approved', ['instructor_approved', 'adviser_approved', 'recommended'], 'check'],
-          ['Published', ['published'], 'repository'],
+          ['Uploaded Research', ['Uploaded'], 'repository'],
         ];
 
   const max = Math.max(1, ...groups.map(([, statuses]) => theses.filter((item) => statuses.includes(item.status)).length));
@@ -162,7 +162,7 @@ function publishedCards(rows, role) {
     const adminMode = role === 'admin';
     return `<div class="empty-state wide">
       <div class="empty-icon">${icon('repository', 30)}</div>
-      <h3>${adminMode ? 'No uploaded thesis yet' : 'No published research yet'}</h3>
+      <h3>${adminMode ? 'No uploaded thesis yet' : 'No Uploaded  research yet'}</h3>
       <p>${adminMode ? 'Approved theses will automatically appear here after the administrator uploads them to the repository.' : 'Approved research will automatically appear here after publication by the administrator.'}</p>
     </div>`;
   }
@@ -197,12 +197,12 @@ function quick(role) {
   if (role === 'student') {
     return `<a class="quick-action" href="#/student/submit"><span class="quick-action-icon">${icon('upload', 18)}</span><div><strong>Submit a thesis</strong><span>Create metadata and upload a manuscript.</span></div>${icon('arrow', 16)}</a>
       <a class="quick-action" href="#/student/theses"><span class="quick-action-icon">${icon('file', 18)}</span><div><strong>Track my thesis records</strong><span>Review status and Research Instructor feedback.</span></div>${icon('arrow', 16)}</a>
-      <a class="quick-action" href="#/repository"><span class="quick-action-icon">${icon('repository', 18)}</span><div><strong>Research repository</strong><span>Search all published CAS research.</span></div>${icon('arrow', 16)}</a>`;
+      <a class="quick-action" href="#/repository"><span class="quick-action-icon">${icon('repository', 18)}</span><div><strong>Research repository</strong><span>Search all Uploaded  CAS research.</span></div>${icon('arrow', 16)}</a>`;
   }
   if (isResearchInstructorRole(role)) {
     return `<a class="quick-action" href="#/research-instructor/assigned"><span class="quick-action-icon">${icon('review', 18)}</span><div><strong>Review submitted research</strong><span>Open manuscripts assigned to you as Research Instructor.</span></div>${icon('arrow', 16)}</a>
       <a class="quick-action" href="#/research-instructor/history"><span class="quick-action-icon">${icon('clock', 18)}</span><div><strong>Review history</strong><span>See previous decisions and comments.</span></div>${icon('arrow', 16)}</a>
-      <a class="quick-action" href="#/repository"><span class="quick-action-icon">${icon('repository', 18)}</span><div><strong>Research repository</strong><span>Search all published CAS research.</span></div>${icon('arrow', 16)}</a>`;
+      <a class="quick-action" href="#/repository"><span class="quick-action-icon">${icon('repository', 18)}</span><div><strong>Research repository</strong><span>Search all Uploaded  CAS research.</span></div>${icon('arrow', 16)}</a>`;
   }
   if (role === 'program_chair') {
     return `<a class="quick-action" href="#/program-chair/research"><span class="quick-action-icon">${icon('file', 18)}</span><div><strong>Program research monitoring</strong><span>Open Research Instructor-approved records routed to your assigned program.</span></div>${icon('arrow', 16)}</a>

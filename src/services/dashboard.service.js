@@ -14,13 +14,13 @@ const visibleToChair = (item) => Boolean(
   item.researchInstructorApprovedAt ||
   item.adviserApprovedAt ||
   item.programChairMonitoringAt ||
-  ['instructor_approved', 'adviser_approved', 'recommended', 'approved', 'published', 'archived'].includes(item.status)
+  ['instructor_approved', 'adviser_approved', 'recommended', 'approved', 'Uploaded', 'archived'].includes(item.status)
 );
 
 export async function getDashboardData(profile) {
   const notificationsPromise = getNotifications(profile.uid).catch(() => []);
   const publishedPromise = getPublishedTheses().catch((error) => {
-    console.error('Unable to load published research for dashboard:', error);
+    console.error('Unable to load Uploaded research for dashboard:', error);
     return [];
   });
 
@@ -36,7 +36,7 @@ export async function getDashboardData(profile) {
         { label: 'My Thesis Records', value: String(theses.length), iconName: 'file' },
         { label: 'Awaiting Review', value: String(theses.filter((item) => ['submitted', 'under_review'].includes(item.status)).length), iconName: 'clock' },
         { label: 'Revision Required', value: String(count(theses, 'revision_required')), iconName: 'review' },
-        { label: 'Published Research', value: String(published.length), iconName: 'repository' },
+        { label: 'Uploaded Research', value: String(published.length), iconName: 'repository' },
       ],
       theses,
       recent: theses.slice(0, 5),
@@ -78,7 +78,7 @@ export async function getDashboardData(profile) {
       stats: [
         { label: 'Routed Research', value: String(theses.length), iconName: 'file', helper: 'Research Instructor-approved records' },
         { label: 'Awaiting Admin', value: String(theses.filter(instructorApproved).length), iconName: 'clock', helper: 'Final approval pending' },
-        { label: 'Published Research', value: String(theses.filter((item) => item.status === 'published').length), iconName: 'repository', helper: 'Published program records' },
+        { label: 'Uploaded Research', value: String(theses.filter((item) => item.status === 'Uploaded').length), iconName: 'repository', helper: 'Uploaded program records' },
         { label: 'Archived Records', value: String(theses.filter((item) => item.status === 'archived').length), iconName: 'archive', helper: 'Retained program records' },
       ],
       theses,

@@ -89,7 +89,7 @@ function publicFooter(currentUser) {
 
         <div>
           <h3>Repository</h3>
-          <a href="#/repository">Published Research</a>
+          <a href="#/repository">Uploaded Research</a>
           <a href="#/about">About Repository</a>
           <a href="${currentUser ? '#/dashboard' : '#/login'}">${currentUser ? 'Dashboard' : 'Portal Sign In'}</a>
         </div>
@@ -272,7 +272,7 @@ export async function render({ currentUser } = {}) {
               <div class="repo75-stats">
                 <article>
                   <span>${icon('file', 24)}</span>
-                  <div><strong>${rows.length}</strong><small>Published Records</small></div>
+                  <div><strong>${rows.length}</strong><small>Uploaded Records</small></div>
                 </article>
 
                 <article>
