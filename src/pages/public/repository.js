@@ -282,7 +282,7 @@ export async function render({ currentUser } = {}) {
 
                 <article>
                   <span>${icon('clock', 24)}</span>
-                  <div><strong>${years.max}</strong><small>Latest Publication Year</small></div>
+                  <div><strong>${years.max}</strong><small>Latest uploaded  Year</small></div>
                 </article>
               </div>
             </div>
