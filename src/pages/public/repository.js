@@ -250,7 +250,7 @@ export async function render({ currentUser } = {}) {
         <section class="repo75-hero">
           <div class="repo75-shell repo75-hero-inner">
             <div class="repo75-hero-copy">
-              <h1>Explore published<br>research from<br><em>Samar State University.</em></h1>
+              <h1>Explore uploaded<br>research from<br><em>Samar State University.</em></h1>
 
               <p>
                 Discover, access, and share scholarly works, thesis records, and academic research

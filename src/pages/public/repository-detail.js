@@ -70,7 +70,7 @@ export async function render({ params, currentUser }) {
               <span class="public-access-icon">${icon('download', 22)}</span>
               <div>
                 <h2>Public manuscript access</h2>
-                <p>This published thesis is publicly accessible. Anyone may download the repository manuscript when a file is available.</p>
+                <p>This uploaded thesis is publicly accessible. Anyone may download the repository manuscript when a file is available.</p>
               </div>
             </div>
             ${fileButton}
